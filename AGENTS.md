@@ -1,4 +1,4 @@
-# AGENTS.md - Wasmtime Rust 开发指南
+# AGENTS.md - Wasmtime Rust 压测指南
 
 ## 概述
 
@@ -23,6 +23,7 @@
 - Rust 1.92.0
 - Cargo（随 Rust 一起安装）
 - 基本的 WebAssembly 概念理解
+- criterion >= v0.8.1（用于性能基准测试）
 
 ### 安装
 
@@ -175,6 +176,137 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+## 测试实践
+
+### 单元测试
+
+测试代码和源代码应分离在不同模块。对于模块 `hello`，目录结构如下：
+
+```
+|-hello
+  |-mod.rs    // 源代码
+  |-tests.rs  // 测试代码
+```
+
+**源代码文件 `hello/mod.rs`：**
+
+```rust
+// hello/mod.rs
+
+pub fn greet(name: &str) -> String {
+    format!("Hello, {}!", name)
+}
+
+pub fn calculate_score(value: u32) -> Result<u32, String> {
+    if value == 0 {
+        Err("value cannot be zero".to_string())
+    } else {
+        Ok(value * 2)
+    }
+}
+
+// 在源文件末尾引入测试模块
+#[cfg(test)]
+mod tests;  // 引入同目录下的 tests.rs
+```
+
+**测试代码文件 `hello/tests.rs`：**
+
+```rust
+// hello/tests.rs
+
+use super::*;
+
+#[test]
+fn greet() {
+    assert_eq!(greet("World"), "Hello, World!");
+    assert_eq!(greet("Rust"), "Hello, Rust!");
+}
+
+#[test]
+fn calculate_score_success() {
+    assert_eq!(calculate_score(5).unwrap(), 10);
+    assert_eq!(calculate_score(100).unwrap(), 200);
+}
+
+#[test]
+fn calculate_score_error() {
+    assert!(calculate_score(0).is_err());
+    assert_eq!(calculate_score(0).unwrap_err(), "value cannot be zero");
+}
+```
+
+**模块导出文件 `src/modules/mod.rs`：**
+
+```rust
+pub mod hello;
+```
+
+### 集成测试
+
+在 `tests/` 目录中创建文件：
+
+```rust
+// tests/integration_test.rs
+use my_library::process_data;
+
+#[test]
+fn public_api() {
+    assert_eq!(process_data("test").unwrap(), "TEST");
+}
+```
+
+### 测试组织最佳实践
+
+1. **测试命名**: 使用描述性名称，直接描述被测试的功能或场景，不需要 `test_` 前缀
+   - 示例: `greet()`、`calculate_score_success()`、`empty_input_handling()`
+2. **模块分离**: 测试代码应与源代码分离到独立的 `tests.rs` 文件
+3. **目录结构**: 使用子目录组织模块，源代码和测试代码在同一目录下
+4. **Arrange-Act-Assert 模式**: 清晰组织测试结构
+5. **测试边界情况**: 包括空输入、边界值和错误条件
+6. **使用 `assert!` 和 `assert_eq!`**: 选择合适的断言
+7. **测试错误变体**: 验证所有错误分支正确工作
+
+**完整的示例目录结构：**
+
+```
+src/
+├── lib.rs
+├── error.rs
+└── modules/
+    ├── mod.rs           # 模块导出
+    ├── hello/
+    │   ├── mod.rs       # hello 模块源代码
+    │   └── tests.rs     # hello 模块测试代码
+    └── calculator/
+        ├── mod.rs       # calculator 模块源代码
+        └── tests.rs     # calculator 模块测试代码
+```
+
+**测试代码示例 `hello/tests.rs`：**
+
+```rust
+use super::*;
+
+#[test]
+fn calculate_score_handles_zero_input() {
+    // Arrange
+    let zero_input = 0;
+
+    // Act
+    let result = calculate_score(zero_input);
+
+    // Assert
+    assert!(matches!(result, Err(ref msg) if msg.contains("zero")));
+}
+```
+
+**这种结构的优势：**
+- 源代码和测试代码完全分离，便于维护
+- 测试文件专注于测试逻辑，不干扰源代码阅读
+- 保持模块的组织清晰
+- 遵循 Rust 项目的标准组织方式
 
 ### 最佳实践
 
