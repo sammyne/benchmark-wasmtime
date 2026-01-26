@@ -4,512 +4,185 @@
 
 本指南提供了使用 Wasmtime WebAssembly 运行时开发 Rust 应用程序的全面说明。Wasmtime 是一个独立的 JIT 风格 WebAssembly 运行时，能够在 Rust 应用程序中高效执行 WASM 模块。
 
+**注意**：本指南明确仅支持 Wasmtime 的以下两个版本：
+- **v41.0.0**（最新稳定版）
+- **v21.0.1**（早期稳定版）
+
 ## 目录
 
-1. [入门指南](#getting-started)
-2. [项目设置](#project-setup)
-3. [常见模式](#common-patterns)
-4. [性能优化](#performance-optimization)
-5. [测试](#testing)
-6. [错误处理](#error-handling)
-7. [安全考虑](#security-considerations)
+1. [入门指南](#入门指南)
+2. [错误处理](#错误处理)
+3. [其他资源](#其他资源)
+4. [贡献指南](#贡献指南)
+5. [许可证](#许可证)
 
 ## 入门指南
 
 ### 前置要求
 
-- Rust 1.70 或更高版本
+- Rust 1.92.0
 - Cargo（随 Rust 一起安装）
 - 基本的 WebAssembly 概念理解
 
 ### 安装
 
-将 Wasmtime 添加到您的 `Cargo.toml`：
+将 Wasmtime 添加到您的 `Cargo.toml`（根据您需要的版本选择）：
+
+**使用 v41.0.0（推荐）：**
 
 ```toml
 [dependencies]
-wasmtime = "20.0"
-wasmtime-wasi = "20.0"
+wasmtime = "41.0"
+wasmtime-wasi = "41.0"
 anyhow = "1.0"
 ```
 
-## 项目设置
-
-### 基本项目结构
-
-```
-project/
-├── Cargo.toml
-├── src/
-│   ├── main.rs
-│   ├── wasm/
-│   │   └── example.wat
-│   └── modules/
-└── tests/
-```
-
-### Cargo.toml 示例
+**使用 v21.0.1：**
 
 ```toml
-[package]
-name = "wasmtime-app"
-version = "0.1.0"
-edition = "2021"
-
 [dependencies]
-wasmtime = { version = "20.0", features = ["component-model"] }
-wasmtime-wasi = "20.0"
-wasmtime-wasi-http = "20.0"
+wasmtime = "21.0"
+wasmtime-wasi = "21.0"
 anyhow = "1.0"
-tokio = { version = "1.0", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-[dev-dependencies]
-criterion = "0.5"
-
-[[bench]]
-name = "benchmark"
-harness = false
-```
-
-## 常见模式
-
-### 1. 插件系统
-
-```rust
-use wasmtime::*;
-use std::collections::HashMap;
-use std::path::Path;
-
-struct PluginManager {
-    engine: Engine,
-    linker: Linker<()>,
-    plugins: HashMap<String, Instance>,
-}
-
-impl PluginManager {
-    fn new() -> Result<Self> {
-        let engine = Engine::default();
-        let mut linker = Linker::new(&engine);
-        
-        Ok(Self {
-            engine,
-            linker,
-            plugins: HashMap::new(),
-        })
-    }
-    
-    fn load_plugin(&mut self, name: &str, path: &Path) -> Result<()> {
-        let module = Module::from_file(&self.engine, path)?;
-        let mut store = Store::new(&self.engine, ());
-        let instance = self.linker.instantiate(&mut store, &module)?;
-        
-        self.plugins.insert(name.to_string(), instance);
-        Ok(())
-    }
-    
-    fn call_plugin(&mut self, plugin_name: &str, func_name: &str) -> Result<()> {
-        let instance = self.plugins.get(plugin_name)
-            .ok_or_else(|| anyhow::anyhow!("Plugin not found"))?;
-        
-        let mut store = Store::new(&self.engine, ());
-        let func = instance.get_func(&mut store, func_name)
-            .ok_or_else(|| anyhow::anyhow!("Function not found"))?;
-        
-        func.call(&mut store, &[], &mut [])?;
-        Ok(())
-    }
-}
-```
-
-### 2. 流式编译
-
-```rust
-use wasmtime::*;
-use std::io::Read;
-
-fn compile_from_stream<R: Read>(mut reader: R) -> Result<Module> {
-    let engine = Engine::default();
-    let mut bytes = Vec::new();
-    reader.read_to_end(&mut bytes)?;
-    
-    let module = Module::new(&engine, &bytes)?;
-    Ok(module)
-}
-```
-
-### 3. 异步执行
-
-```rust
-use wasmtime::*;
-use tokio::runtime::Runtime;
-
-async fn async_wasm_execution(wasm_bytes: &[u8]) -> Result<i32> {
-    let mut config = Config::new();
-    config.async_support(true);
-    config.epoch_interruption(true);
-    
-    let engine = Engine::new(&config)?;
-    let module = Module::new(&engine, wasm_bytes)?;
-    
-    let mut store = Store::new(&engine, ());
-    store.set_epoch_deadline(1);
-    
-    let instance = Instance::new(&mut store, &module, &[])?;
-    let func = instance.get_typed_func::<(), i32>(&mut store, "async_func")?;
-    
-    let result = func.call_async(&mut store, ()).await?;
-    Ok(result)
-}
-```
-
-### 4. 多线程
-
-```rust
-use wasmtime::*;
-use std::sync::Arc;
-use std::thread;
-
-fn parallel_execution(wasm_bytes: Vec<u8>, num_threads: usize) -> Result<Vec<i32>> {
-    let engine = Arc::new(Engine::default());
-    let module = Arc::new(Module::new(&engine, &wasm_bytes)?);
-    
-    let handles: Vec<_> = (0..num_threads)
-        .map(|_| {
-            let engine = Arc::clone(&engine);
-            let module = Arc::clone(&module);
-            
-            thread::spawn(move || {
-                let mut store = Store::new(&engine, ());
-                let instance = Instance::new(&mut store, &module, &[])?;
-                let func = instance.get_typed_func::<i32, i32>(&mut store, "compute")?;
-                func.call(&mut store, 42)
-            })
-        })
-        .collect();
-    
-    let mut results = Vec::new();
-    for handle in handles {
-        results.push(handle.join().unwrap()?);
-    }
-    
-    Ok(results)
-}
-```
-
-## 性能优化
-
-### 1. 缓存
-
-```rust
-use wasmtime::*;
-
-fn with_cache() -> Result<()> {
-    let mut config = Config::new();
-    
-    // Configure cache directory
-    config.cache_config_load_default()?;
-    
-    let engine = Engine::new(&config)?;
-    
-    // First compilation (slower)
-    let module1 = Module::from_file(&engine, "example.wasm")?;
-    
-    // Second compilation (faster, uses cache)
-    let module2 = Module::from_file(&engine, "example.wasm")?;
-    
-    Ok(())
-}
-```
-
-### 2. 优化级别
-
-```rust
-use wasmtime::*;
-
-fn optimized_config() -> Result<Engine> {
-    let mut config = Config::new();
-    
-    // Set optimization strategy
-    config.strategy(Strategy::Cranelift);
-    
-    // Set optimization level
-    config.cranelift_opt_level(OptLevel::Speed);
-    
-    // Enable target-specific optimizations
-    config.cranelift_debug_verifier(false);
-    
-    Engine::new(&config)
-}
-```
-
-### 3. 内存池
-
-```rust
-use wasmtime::*;
-
-struct MemoryPool {
-    engine: Engine,
-    memory_type: MemoryType,
-    pool: Vec<Memory>,
-}
-
-impl MemoryPool {
-    fn new(engine: Engine, min_pages: u64, max_pages: u64) -> Self {
-        let memory_type = MemoryType::new(min_pages, Some(max_pages), false);
-        Self {
-            engine,
-            memory_type,
-            pool: Vec::new(),
-        }
-    }
-    
-    fn acquire(&mut self) -> Result<Memory> {
-        if let Some(memory) = self.pool.pop() {
-            Ok(memory)
-        } else {
-            Ok(Memory::new(&self.engine, self.memory_type)?)
-        }
-    }
-    
-    fn release(&mut self, memory: Memory) {
-        self.pool.push(memory);
-    }
-}
-```
-
-## 测试
-
-### 单元测试
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use wasmtime::*;
-
-    #[test]
-    fn test_basic_execution() -> Result<()> {
-        let wasm = wat::parse_str(r#"
-            (module
-                (func (export "add") (param i32 i32) (result i32)
-                    local.get 0
-                    local.get 1
-                    i32.add)
-            )
-        "#)?;
-        
-        let engine = Engine::default();
-        let module = Module::new(&engine, &wasm)?;
-        let mut store = Store::new(&engine, ());
-        let instance = Instance::new(&mut store, &module, &[])?;
-        
-        let add = instance.get_typed_func::<i32, i32, i32>(&mut store, "add")?;
-        let result = add.call(&mut store, 5, 3)?;
-        
-        assert_eq!(result, 8);
-        Ok(())
-    }
-
-    #[test]
-    fn test_fuel_consumption() -> Result<()> {
-        let mut config = Config::new();
-        config.consume_fuel(true);
-        let engine = Engine::new(&config)?;
-        
-        let wasm = wat::parse_str(r#"
-            (module
-                (func (export "infinite") (result i32)
-                    (loop $l
-                        i32.const 1
-                        drop
-                        br $l)
-                    i32.const 0)
-            )
-        "#)?;
-        
-        let module = Module::new(&engine, &wasm)?;
-        let mut store = Store::new(&engine, ());
-        store.add_fuel(1000)?;
-        let instance = Instance::new(&mut store, &module, &[])?;
-        
-        let func = instance.get_typed_func::<(), i32>(&mut store, "infinite")?;
-        let result = func.call(&mut store, ());
-        
-        assert!(result.is_err());
-        Ok(())
-    }
-}
-```
-
-### 基准测试
-
-```rust
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
-fn benchmark_execution(c: &mut Criterion) {
-    let engine = Engine::default();
-    let wasm = std::fs::read("example.wasm").unwrap();
-    let module = Module::new(&engine, &wasm).unwrap();
-    
-    c.bench_function("wasm_execution", |b| {
-        b.iter(|| {
-            let mut store = Store::new(&engine, ());
-            let instance = Instance::new(&mut store, &module, &[]).unwrap();
-            let func = instance.get_typed_func::<i32, i32>(&mut store, "compute").unwrap();
-            black_box(func.call(&mut store, black_box(42)).unwrap())
-        })
-    });
-}
-
-criterion_group!(benches, benchmark_execution);
-criterion_main!(benches);
 ```
 
 ## 错误处理
 
-### 全面的错误类型
+本指南推荐使用 `anyhow` 库进行错误处理，它提供了简单而强大的错误处理机制。
+
+### anyhow 基础用法
+
+`anyhow` 是一个通用的错误处理库，专门用于应用代码而非库代码。它提供了以下特性：
+
+- 简单的错误类型转换：`anyhow::Result<T>`
+- 上下文信息附加：`context()` 和 `with_context()` 方法
+- 错误链追踪：自动保留底层错误
+- 转换为 `Box<dyn Error>`：通过 `?` 运算符
+
+### 基本示例
 
 ```rust
-use thiserror::Error;
+use anyhow::{Context, Result, bail, anyhow};
+use wasmtime::{Engine, Module, Store};
 
-#[derive(Error, Debug)]
-pub enum WasmRuntimeError {
-    #[error("Module compilation failed: {0}")]
-    Compilation(#[from] wasmtime::CompileError),
-    
-    #[error("Instantiation failed: {0}")]
-    Instantiation(#[from] wasmtime::InstantiationError),
-    
-    #[error("Function call failed: {0}")]
-    Call(#[from] wasmtime::Trap),
-    
-    #[error("Resource limit exceeded: fuel={0}")]
-    FuelExhausted(u64),
-    
-    #[error("Memory access violation: offset={offset}, length={length}, size={size}")]
-    MemoryAccess {
-        offset: usize,
-        length: usize,
-        size: usize,
-    },
-    
-    #[error("Invalid export: expected '{expected}', got '{found}'")]
-    InvalidExport { expected: String, found: String },
+fn load_wasm_module(engine: &Engine, wasm_bytes: &[u8]) -> Result<Module> {
+    Module::from_binary(engine, wasm_bytes)
+        .context("无法解析 WebAssembly 模块")
 }
 
-pub type Result<T> = std::result::Result<T, WasmRuntimeError>;
-```
-
-### 错误恢复
-
-```rust
-fn resilient_execution(wasm_bytes: &[u8], max_retries: usize) -> Result<i32> {
+fn run_wasm(wasm_bytes: &[u8]) -> Result<i32> {
     let engine = Engine::default();
     
-    for attempt in 0..max_retries {
-        match attempt_execution(&engine, wasm_bytes) {
-            Ok(result) => return Ok(result),
-            Err(WasmRuntimeError::FuelExhausted(_)) => {
-                // Retry with more fuel
-                continue;
-            }
-            Err(e) => return Err(e),
-        }
-    }
+    let module = load_wasm_module(&engine, wasm_bytes)?;
     
-    Err(WasmRuntimeError::Call(wasmtime::Trap::new("Max retries exceeded")))
-}
-
-fn attempt_execution(engine: &Engine, wasm_bytes: &[u8]) -> Result<i32> {
-    let module = Module::new(engine, wasm_bytes)?;
-    let mut store = Store::new(engine, ());
-    let instance = Instance::new(&mut store, &module, &[])?;
-    let func = instance.get_typed_func::<(), i32>(&mut store, "main")?;
-    func.call(&mut store, ())
+    let mut store = Store::new(&engine, ());
+    let instance = module.instantiate(&mut store, [])
+        .with_context(|| format!("无法实例化模块：{}", module.name()))?;
+    
+    // 获取并调用函数
+    let func = instance.get_typed_func::<(), i32>(&mut store, "main")
+        .context("无法找到 'main' 函数")?;
+    
+    let result = func.call(&mut store, ())
+        .context("函数调用失败")?;
+    
+    Ok(result)
 }
 ```
 
-## 安全考虑
-
-### 1. 资源限制
+### 错误类型转换
 
 ```rust
-use wasmtime::*;
+use anyhow::Result;
 
-fn secure_config() -> Result<Config> {
-    let mut config = Config::new();
-    
-    // Enable fuel
-    config.consume_fuel(true);
-    
-    // Limit stack size
-    config.max_wasm_stack(512 * 1024); // 512KB
-    
-    // Limit memory growth
-    config.limit_memory_growth(true);
-    
-    // Set epoch interruption for timeout handling
-    config.epoch_interruption(true);
+fn parse_config(config_str: &str) -> Result<serde_json::Value> {
+    let config: serde_json::Value = serde_json::from_str(config_str)
+        .map_err(|e| anyhow!("JSON 解析失败：{}", e))?;
     
     Ok(config)
 }
 ```
 
-### 2. 输入验证
+### 使用 bail! 宏快速返回错误
 
 ```rust
-fn validate_wasm_module(wasm_bytes: &[u8]) -> Result<()> {
-    // Check size limit
-    const MAX_MODULE_SIZE: usize = 10 * 1024 * 1024; // 10MB
-    
-    if wasm_bytes.len() > MAX_MODULE_SIZE {
-        return Err(anyhow::anyhow!("Module too large"));
+use anyhow::{Result, bail};
+
+fn validate_wasm(wasm_bytes: &[u8]) -> Result<()> {
+    if wasm_bytes.is_empty() {
+        bail!("WASM 模块为空");
     }
     
-    // Validate WASM header
     if !wasm_bytes.starts_with(&[0x00, 0x61, 0x73, 0x6D]) {
-        return Err(anyhow::anyhow!("Invalid WASM magic number"));
+        bail!("无效的 WASM 魔术数字");
     }
     
-    // Additional validation...
-    
     Ok(())
 }
 ```
 
-### 3. 沙箱
+### 错误链与上下文信息
 
 ```rust
-fn sandboxed_execution(wasm_bytes: &[u8]) -> Result<()> {
-    let mut config = Config::new();
-    
-    // Disable potentially dangerous features
-    config.wasm_simd(false);
-    config.wasm_multi_memory(false);
-    config.wasm_multi_value(false);
-    
-    // Use WASI preview1 with restricted capabilities
-    let mut wasi = wasmtime_wasi::WasiCtxBuilder::new();
-    // Only allow specific directories
-    wasi.preopened_dir(
-        std::path::PathBuf::from("/sandbox"),
-        std::path::PathBuf::from("/sandbox"),
-    )?;
-    
-    let engine = Engine::new(&config)?;
-    let module = Module::new(&engine, wasm_bytes)?;
-    
-    let mut linker = Linker::new(&engine);
-    wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |s| s)?;
-    
-    let mut store = Store::new(&engine, wasi.build());
-    let _instance = linker.instantiate(&mut store, &module)?;
+use anyhow::{Context, Result};
+
+fn complex_operation(path: &str) -> Result<String> {
+    std::fs::read_to_string(path)
+        .with_context(|| format!("无法读取文件：{}", path))
+        .and_then(|content| {
+            // 处理内容
+            if content.is_empty() {
+                anyhow::bail!("文件内容为空：{}", path);
+            }
+            Ok(content)
+        })
+}
+```
+
+### Wasmtime 特定错误处理
+
+```rust
+use anyhow::{Context, Result};
+use wasmtime::{Engine, Store, Instance};
+
+fn safe_instantiate(module: &Module, store: &mut Store<()>) -> Result<Instance> {
+    module.instantiate(store, [])
+        .context("实例化失败")
+        .map_err(|e| {
+            // 转换 Wasmtime 特定错误并添加更多上下文
+            anyhow::anyhow!("WASM 实例化错误: {}", e)
+        })
+}
+```
+
+### 错误打印和调试
+
+```rust
+fn main() -> anyhow::Result<()> {
+    if let Err(e) = run_wasm(&[0x00, 0x61, 0x73, 0x6D]) {
+        // 打印错误链
+        eprintln!("错误：{:?}", e);
+        
+        // 打印错误链的每一层
+        for cause in e.chain() {
+            eprintln!("原因：{}", cause);
+        }
+        
+        // 返回错误
+        return Err(e);
+    }
     
     Ok(())
 }
 ```
+
+### 最佳实践
+
+1. **在应用代码中使用 anyhow**，在库代码中定义自定义错误类型
+2. **使用 `context()` 添加上下文信息**，帮助调试
+3. **使用 `bail!` 宏快速返回错误**，简化代码
+4. **保留错误链**，不要吞掉底层错误
+5. **为用户友好的错误消息**，提供清晰的错误描述
 
 ## 其他资源
 
