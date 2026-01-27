@@ -4,6 +4,10 @@ use anyhow::{Context, Result};
 // Re-export wasmtime v41 types for convenience
 pub use wasmtime_v41::{Config, Engine, Module};
 
+// Re-export wasmtime-wasi v41 as wasi for convenience
+// Note: We re-export the module contents to allow easier access
+pub use wasmtime_wasi_v41 as wasi;
+
 /// Execute a function from the loaded WASM module
 ///
 /// # Arguments

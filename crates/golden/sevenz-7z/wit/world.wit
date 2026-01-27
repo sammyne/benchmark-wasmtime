@@ -1,0 +1,12 @@
+package sammyne:sevenz7z@1.0.0;
+
+interface api {
+    zip: func(req: list<u8>) -> result<list<u8>, string>;
+
+    unzip: func(req: list<u8>) -> result<list<u8>, string>;
+}
+
+/// An example world for the component to target.
+world helloworld {
+    export api;
+}

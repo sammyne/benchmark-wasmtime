@@ -1,0 +1,14 @@
+[package]
+name = "sevenz-7z"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sevenz-rust = { version = "0.6", features = ["compress"] }
+anyhow.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen.workspace = true
+
+[lib]
+crate-type = ["cdylib"]

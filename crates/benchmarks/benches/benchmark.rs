@@ -3,10 +3,10 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::hint::black_box;
 use testdata::{load_fixture, validate_wasm};
 
+use engine::v21::execute as execute_v21;
 use engine::v21::{Config as ConfigV21, Engine as EngineV21, Module as ModuleV21};
-use engine::v21::{execute as execute_v21};
+use engine::v41::execute as execute_v41;
 use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41};
-use engine::v41::{execute as execute_v41};
 
 fn setup_engine_v21(wasm_bytes: &[u8]) -> Result<(EngineV21, ModuleV21)> {
     validate_wasm(wasm_bytes).context("验证 WASM 格式失败")?;
@@ -42,10 +42,7 @@ fn benchmark_simple_arithmetic(c: &mut Criterion) {
         &module_v21,
         |b, module| {
             b.iter(|| {
-                black_box(
-                    execute_v21(&engine_v21, module, function_name, &[])
-                        .expect("执行失败"),
-                )
+                black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))
             })
         },
     );
@@ -58,10 +55,7 @@ fn benchmark_simple_arithmetic(c: &mut Criterion) {
         &module_v41,
         |b, module| {
             b.iter(|| {
-                black_box(
-                    execute_v41(&engine_v41, module, function_name, &[])
-                        .expect("执行失败"),
-                )
+                black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))
             })
         },
     );
@@ -83,10 +77,7 @@ fn benchmark_complex_calculation(c: &mut Criterion) {
         &module_v21,
         |b, module| {
             b.iter(|| {
-                black_box(
-                    execute_v21(&engine_v21, module, function_name, &[])
-                        .expect("执行失败"),
-                )
+                black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))
             })
         },
     );
@@ -99,10 +90,7 @@ fn benchmark_complex_calculation(c: &mut Criterion) {
         &module_v41,
         |b, module| {
             b.iter(|| {
-                black_box(
-                    execute_v41(&engine_v41, module, function_name, &[])
-                        .expect("执行失败"),
-                )
+                black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))
             })
         },
     );

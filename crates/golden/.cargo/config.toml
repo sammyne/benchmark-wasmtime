@@ -1,0 +1,5 @@
+[target.'cfg(target_arch = "wasm32")']
+# strip 选项作用如下（详情参考 https://doc.rust-lang.org/cargo/reference/profiles.html#strip）
+#   - true 移除辅助调试的符号
+#   - debuginfo 指示有选择地移除部分自定义小节的调试信息，例如 .debug_abbrev
+rustflags = ["-C", "strip=debuginfo"]
