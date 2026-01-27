@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
-use engine::EngineApi;
 use testdata::{load_fixture, validate_wasm};
 
-use engine::v21::{Config, Engine as WasmtimeV21};
-use engine::v41::{Config as ConfigV41, Engine as WasmtimeV41};
+use engine::v21::{Config, Engine as EngineV21, Module as ModuleV21};
+use engine::v21::{execute as execute_v21, version as version_v21};
+use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41};
+use engine::v41::{execute as execute_v41, version as version_v41};
 
 #[test]
 fn test_wasmtime_v21_execute_simple() -> Result<()> {
@@ -11,13 +12,10 @@ fn test_wasmtime_v21_execute_simple() -> Result<()> {
     validate_wasm(&wasm_bytes)?;
 
     let config = Config::new();
-    let engine = WasmtimeV21::new(&config).context("创建 v21 引擎失败")?;
-    let module = engine
-        .load_module(&wasm_bytes)
-        .context("无法加载 WASM 模块")?;
+    let engine = EngineV21::new(&config).context("创建 v21 引擎失败")?;
+    let module = ModuleV21::from_binary(&engine, &wasm_bytes).context("无法加载 WASM 模块")?;
 
-    let result = engine
-        .execute(&module, "add", &[])
+    let result = execute_v21(&engine, &module, "add", &[])
         .context("执行函数失败")?;
 
     // The add function returns 100 (42 + 58)
@@ -31,13 +29,10 @@ fn test_wasmtime_v41_execute_simple() -> Result<()> {
     validate_wasm(&wasm_bytes)?;
 
     let config = ConfigV41::new();
-    let engine = WasmtimeV41::new(&config).context("创建 v41 引擎失败")?;
-    let module = engine
-        .load_module(&wasm_bytes)
-        .context("无法加载 WASM 模块")?;
+    let engine = EngineV41::new(&config).context("创建 v41 引擎失败")?;
+    let module = ModuleV41::from_binary(&engine, &wasm_bytes).context("无法加载 WASM 模块")?;
 
-    let result = engine
-        .execute(&module, "add", &[])
+    let result = execute_v41(&engine, &module, "add", &[])
         .context("执行函数失败")?;
 
     // The add function returns 100 (42 + 58)
@@ -51,13 +46,10 @@ fn test_wasmtime_v21_execute_complex() -> Result<()> {
     validate_wasm(&wasm_bytes)?;
 
     let config = Config::new();
-    let engine = WasmtimeV21::new(&config).context("创建 v21 引擎失败")?;
-    let module = engine
-        .load_module(&wasm_bytes)
-        .context("无法加载 WASM 模块")?;
+    let engine = EngineV21::new(&config).context("创建 v21 引擎失败")?;
+    let module = ModuleV21::from_binary(&engine, &wasm_bytes).context("无法加载 WASM 模块")?;
 
-    let result = engine
-        .execute(&module, "fibonacci", &[])
+    let result = execute_v21(&engine, &module, "fibonacci", &[])
         .context("执行函数失败")?;
 
     // The fibonacci function returns fib(11) = 89
@@ -71,13 +63,10 @@ fn test_wasmtime_v41_execute_complex() -> Result<()> {
     validate_wasm(&wasm_bytes)?;
 
     let config = ConfigV41::new();
-    let engine = WasmtimeV41::new(&config).context("创建 v41 引擎失败")?;
-    let module = engine
-        .load_module(&wasm_bytes)
-        .context("无法加载 WASM 模块")?;
+    let engine = EngineV41::new(&config).context("创建 v41 引擎失败")?;
+    let module = ModuleV41::from_binary(&engine, &wasm_bytes).context("无法加载 WASM 模块")?;
 
-    let result = engine
-        .execute(&module, "fibonacci", &[])
+    let result = execute_v41(&engine, &module, "fibonacci", &[])
         .context("执行函数失败")?;
 
     // The fibonacci function returns fib(11) = 89
@@ -87,14 +76,9 @@ fn test_wasmtime_v41_execute_complex() -> Result<()> {
 
 #[test]
 fn test_version_consistency() -> Result<()> {
-    let config = Config::new();
-    let config_v41 = ConfigV41::new();
-    let engine_v21 = WasmtimeV21::new(&config).context("创建 v21 引擎失败")?;
-    let engine_v41 = WasmtimeV41::new(&config_v41).context("创建 v41 引擎失败")?;
+    assert_eq!(version_v21(), "wasmtime-21.0");
+    assert_eq!(version_v41(), "wasmtime-41.0");
 
-    assert_eq!(engine_v21.version(), "wasmtime-21.0");
-    assert_eq!(engine_v41.version(), "wasmtime-41.0");
-
-    assert_ne!(engine_v21.version(), engine_v41.version());
+    assert_ne!(version_v21(), version_v41());
     Ok(())
 }

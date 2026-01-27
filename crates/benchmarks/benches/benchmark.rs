@@ -1,32 +1,29 @@
 use anyhow::{Context, Result};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use engine::{EngineApi};
 use std::hint::black_box;
 use testdata::{load_fixture, validate_wasm};
 
-use engine::v21::{Config as ConfigV21, Engine as EngineV21};
-use engine::v41::{Config as ConfigV41, Engine as EngineV41};
+use engine::v21::{Config as ConfigV21, Engine as EngineV21, Module as ModuleV21};
+use engine::v21::{execute as execute_v21};
+use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41};
+use engine::v41::{execute as execute_v41};
 
-fn setup_engine_v21(wasm_bytes: &[u8]) -> Result<(EngineV21, <EngineV21 as EngineApi>::Module)> {
+fn setup_engine_v21(wasm_bytes: &[u8]) -> Result<(EngineV21, ModuleV21)> {
     validate_wasm(wasm_bytes).context("验证 WASM 格式失败")?;
 
     let config = ConfigV21::new();
     let engine = EngineV21::new(&config).context("创建 v21 引擎失败")?;
-    let module = engine
-        .load_module(wasm_bytes)
-        .context("加载 WASM 模块失败")?;
+    let module = ModuleV21::from_binary(&engine, wasm_bytes).context("加载 WASM 模块失败")?;
 
     Ok((engine, module))
 }
 
-fn setup_engine_v41(wasm_bytes: &[u8]) -> Result<(EngineV41, <EngineV41 as EngineApi>::Module)> {
+fn setup_engine_v41(wasm_bytes: &[u8]) -> Result<(EngineV41, ModuleV41)> {
     validate_wasm(wasm_bytes).context("验证 WASM 格式失败")?;
 
     let config = ConfigV41::new();
     let engine = EngineV41::new(&config).context("创建 v41 引擎失败")?;
-    let module = engine
-        .load_module(wasm_bytes)
-        .context("加载 WASM 模块失败")?;
+    let module = ModuleV41::from_binary(&engine, wasm_bytes).context("加载 WASM 模块失败")?;
 
     Ok((engine, module))
 }
@@ -46,8 +43,7 @@ fn benchmark_simple_arithmetic(c: &mut Criterion) {
         |b, module| {
             b.iter(|| {
                 black_box(
-                    engine_v21
-                        .execute(module, function_name, &[])
+                    execute_v21(&engine_v21, module, function_name, &[])
                         .expect("执行失败"),
                 )
             })
@@ -63,8 +59,7 @@ fn benchmark_simple_arithmetic(c: &mut Criterion) {
         |b, module| {
             b.iter(|| {
                 black_box(
-                    engine_v41
-                        .execute(module, function_name, &[])
+                    execute_v41(&engine_v41, module, function_name, &[])
                         .expect("执行失败"),
                 )
             })
@@ -89,8 +84,7 @@ fn benchmark_complex_calculation(c: &mut Criterion) {
         |b, module| {
             b.iter(|| {
                 black_box(
-                    engine_v21
-                        .execute(module, function_name, &[])
+                    execute_v21(&engine_v21, module, function_name, &[])
                         .expect("执行失败"),
                 )
             })
@@ -106,8 +100,7 @@ fn benchmark_complex_calculation(c: &mut Criterion) {
         |b, module| {
             b.iter(|| {
                 black_box(
-                    engine_v41
-                        .execute(module, function_name, &[])
+                    execute_v41(&engine_v41, module, function_name, &[])
                         .expect("执行失败"),
                 )
             })

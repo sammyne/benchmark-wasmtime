@@ -1974,6 +1974,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmi-testdata"
+version = "0.1.0"
+
+[[package]]
 name = "wasmparser"
 version = "0.207.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
