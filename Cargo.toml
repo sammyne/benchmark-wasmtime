@@ -2,8 +2,6 @@
 members = [
     "crates/engine",
     "crates/testdata",
-    "crates/wasmtime/v21",
-    "crates/wasmtime/v41",
     "crates/benchmarks",
 ]
 resolver = "3"
@@ -17,7 +15,5 @@ anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = "0.4"
-wasmtime = { version = "21.0", package = "wasmtime-21" }
-wasmtime-v41 = { version = "41.0", package = "wasmtime" }
 criterion = "0.8"
 

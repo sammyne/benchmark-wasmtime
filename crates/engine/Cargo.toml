@@ -5,3 +5,5 @@ edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+wasmtime-v21 = { version = "21.0", package = "wasmtime" }
+wasmtime-v41 = { version = "41.0", package = "wasmtime" }

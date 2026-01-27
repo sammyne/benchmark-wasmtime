@@ -126,8 +126,6 @@ dependencies = [
  "criterion",
  "engine",
  "testdata",
- "wasmtime-v21",
- "wasmtime-v41",
 ]
 
 [[package]]
@@ -677,6 +675,8 @@ name = "engine"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "wasmtime 21.0.2",
+ "wasmtime 41.0.0",
 ]
 
 [[package]]
@@ -2502,26 +2502,6 @@ dependencies = [
  "serde_derive",
  "smallvec",
  "wasmparser 0.207.0",
-]
-
-[[package]]
-name = "wasmtime-v21"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "engine",
- "testdata",
- "wasmtime 21.0.2",
-]
-
-[[package]]
-name = "wasmtime-v41"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "engine",
- "testdata",
- "wasmtime 41.0.0",
 ]
 
 [[package]]

@@ -10,8 +10,6 @@ harness = false
 [dependencies]
 engine = { path = "../engine" }
 testdata = { path = "../testdata" }
-wasmtime-v21 = { path = "../wasmtime/v21" }
-wasmtime-v41 = { path = "../wasmtime/v41" }
 anyhow = "1.0"
 
 [dev-dependencies]
