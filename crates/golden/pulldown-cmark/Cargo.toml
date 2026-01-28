@@ -1,0 +1,15 @@
+[package]
+name = "pulldown-cmark-component"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+anyhow.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+bench = false

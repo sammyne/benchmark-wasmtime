@@ -1,0 +1,17 @@
+package sammyne:pulldown-cmark@1.0.0;
+
+interface api {
+    /// Parse markdown text into HTML
+    ///
+    /// # Arguments
+    /// * `markdown` - The markdown text to parse
+    ///
+    /// # Returns
+    /// Ok with the HTML string, or Err with an error message
+    parse: func(markdown: string) -> result<string, string>;
+}
+
+/// An example world for the component to target.
+world pulldown-cmark-world {
+    export api;
+}
