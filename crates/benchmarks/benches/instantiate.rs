@@ -97,7 +97,7 @@ fn benchmark_instantiate_v41(c: &mut Criterion, wasm_file: &str) {
         |b| {
             b.iter(|| {
                 let mut store = StoreV41::new(&engine, engine::v41::WasiP2State::default());
-                black_box(
+                let _ii = black_box(
                     pre_instance
                         .instantiate(&mut store)
                         .expect("Instantiation failed"),

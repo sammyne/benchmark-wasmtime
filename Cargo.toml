@@ -30,6 +30,6 @@ wasmtime-wasi-v41 = { version = "41.0", package = "wasmtime-wasi" }
 wit-bindgen = "0.50.0"
 
 [profile.bench]
-# debug = true
+debug = true
 # lto = "fat"
 # codegen-units = 1
