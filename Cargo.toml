@@ -9,6 +9,7 @@ members = [
 ]
 exclude = [
     "crates/golden/.cargo",
+    "crates/golden/out",
 ]
 resolver = "3"
 
@@ -30,5 +31,5 @@ wit-bindgen = "0.50.0"
 
 [profile.bench]
 # debug = true
-lto = "fat"
-codegen-units = 1
+# lto = "fat"
+# codegen-units = 1

@@ -1,9 +1,10 @@
 use crate::EngineError;
-use anyhow::{Context, Result};
+use anyhow::Context;
 
 // Re-export wasmtime v41 types for convenience
-pub use wasmtime_v41::{Config, Engine, Module};
+pub use wasmtime_v41::*;
 
+use wasmtime_wasi_v41::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
 // Re-export wasmtime-wasi v41 as wasi for convenience
 // Note: We re-export the module contents to allow easier access
 pub use wasmtime_wasi_v41 as wasi;
@@ -45,4 +46,19 @@ pub fn execute(
 /// The version string "wasmtime-41.0"
 pub fn version() -> &'static str {
     "wasmtime-41.0"
+}
+
+#[derive(Default)]
+pub struct WasiP2State {
+    ctx: WasiCtx,
+    table: ResourceTable,
+}
+
+impl WasiView for WasiP2State {
+    fn ctx(&mut self) -> WasiCtxView<'_> {
+        WasiCtxView {
+            ctx: &mut self.ctx,
+            table: &mut self.table,
+        }
+    }
 }

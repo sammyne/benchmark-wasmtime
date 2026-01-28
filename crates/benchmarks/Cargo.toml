@@ -7,6 +7,10 @@ edition.workspace = true
 name = "benchmark"
 harness = false
 
+[[bench]]
+name = "instantiate"
+harness = false
+
 [dependencies]
 engine = { path = "../engine" }
 testdata = { path = "../testdata" }
