@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
-        json_to_wasm_value, load_component, parse_json_params, wasm_value_to_json,
-    };
+    use crate::{json_to_wasm_value, load_component, parse_json_params, wasm_value_to_json};
     use std::io::Write;
     use std::path::PathBuf;
     use tempfile::NamedTempFile;
@@ -10,7 +8,11 @@ mod tests {
 
     #[test]
     fn test_parse_json_params_valid() {
-        let params = vec!["42".to_string(), "\"hello\"".to_string(), "true".to_string()];
+        let params = vec![
+            "42".to_string(),
+            "\"hello\"".to_string(),
+            "true".to_string(),
+        ];
         let result = parse_json_params(&params);
         assert!(result.is_ok());
 

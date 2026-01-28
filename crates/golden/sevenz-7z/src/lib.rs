@@ -6,8 +6,8 @@ pub use wasm::*;
 
 use anyhow::{Context, Result};
 use sevenz_rust::{
-    Password, SevenZWriter, SevenZArchiveEntry, SevenZReader, SevenZMethod,
-    SevenZMethodConfiguration
+    Password, SevenZArchiveEntry, SevenZMethod, SevenZMethodConfiguration, SevenZReader,
+    SevenZWriter,
 };
 use std::io::Cursor;
 
@@ -32,13 +32,10 @@ pub fn compress_with_lzma2(data: &[u8], compression_level: u8) -> Result<Vec<u8>
     let buffer = Cursor::new(Vec::new());
 
     // Create a SevenZWriter that writes to the buffer
-    let mut sz = SevenZWriter::new(buffer)
-        .context("Failed to create 7z writer")?;
-    
+    let mut sz = SevenZWriter::new(buffer).context("Failed to create 7z writer")?;
+
     // Set content methods to use LZMA2 compression (7z native algorithm)
-    sz.set_content_methods(vec![
-        SevenZMethodConfiguration::new(SevenZMethod::LZMA2)
-    ]);
+    sz.set_content_methods(vec![SevenZMethodConfiguration::new(SevenZMethod::LZMA2)]);
 
     // Create an archive entry
     let mut entry = SevenZArchiveEntry::new();
@@ -46,7 +43,7 @@ pub fn compress_with_lzma2(data: &[u8], compression_level: u8) -> Result<Vec<u8>
     entry.has_stream = true;
     entry.is_directory = false;
     entry.size = data.len() as u64;
-    
+
     // Add the data as a file to the 7z archive
     sz.push_archive_entry(entry, Some(Cursor::new(data.to_vec())))
         .context("Failed to compress data")?;
@@ -86,20 +83,19 @@ pub fn unzip(compressed_data: &[u8]) -> Result<Vec<u8>> {
     // Collect the first entry's data
     let mut result: Option<Vec<u8>> = None;
 
-    archive.for_each_entries(|_entry, reader| {
-        if result.is_none() {
-            let mut data = Vec::new();
-            reader.read_to_end(&mut data)?;
-            result = Some(data);
-        }
-        Ok::<_, sevenz_rust::Error>(result.is_some())
-    })
-    .context("Failed to read archive entries")?;
+    archive
+        .for_each_entries(|_entry, reader| {
+            if result.is_none() {
+                let mut data = Vec::new();
+                reader.read_to_end(&mut data)?;
+                result = Some(data);
+            }
+            Ok::<_, sevenz_rust::Error>(result.is_some())
+        })
+        .context("Failed to read archive entries")?;
 
     result.ok_or_else(|| anyhow::anyhow!("7z archive contains no files"))
 }
 
 #[cfg(test)]
 mod tests;
-
-

@@ -1,0 +1,18 @@
+package sammyne:argon2@1.0.0;
+
+interface api {
+    /// Hash a password with the given salt using Argon2id
+    ///
+    /// # Arguments
+    /// * `password` - The password bytes to hash
+    /// * `salt` - The salt string to use for hashing
+    ///
+    /// # Returns
+    /// Ok with the 32-byte hash result, or Err with an error message
+    hash: func(password: list<u8>, salt: string) -> result<list<u8>, string>;
+}
+
+/// An example world for the component to target.
+world argon2-world {
+    export api;
+}

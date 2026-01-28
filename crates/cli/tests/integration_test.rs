@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::path::PathBuf;
+use std::process::Command;
 
 /// Integration test for basic CLI functionality
 #[test]
@@ -21,7 +21,16 @@ fn test_cli_help() {
 #[test]
 fn test_cli_file_not_found() {
     let output = Command::new("cargo")
-        .args(["run", "-p", "cli", "--", "-w", "/nonexistent.wasm", "-f", "test"])
+        .args([
+            "run",
+            "-p",
+            "cli",
+            "--",
+            "-w",
+            "/nonexistent.wasm",
+            "-f",
+            "test",
+        ])
         .output()
         .expect("Failed to execute CLI");
 
@@ -42,10 +51,15 @@ fn test_cli_invalid_json_param() {
 
     let output = Command::new("cargo")
         .args([
-            "run", "-p", "cli", "--",
-            "-w", temp_file.path().to_str().unwrap(),
-            "-f", "test",
-            "{invalid json}"
+            "run",
+            "-p",
+            "cli",
+            "--",
+            "-w",
+            temp_file.path().to_str().unwrap(),
+            "-f",
+            "test",
+            "{invalid json}",
         ])
         .output()
         .expect("Failed to execute CLI");
@@ -59,7 +73,7 @@ fn test_cli_with_simple_wasm() {
     // This test would require a valid WASM component file
     // For now, we'll skip it if no test file is available
     let test_wasm_path = PathBuf::from("testdata/src/fixtures/simple.wasm");
-    
+
     if !test_wasm_path.exists() {
         println!("Skipping test: WASM test file not found");
         return;
@@ -67,9 +81,14 @@ fn test_cli_with_simple_wasm() {
 
     let output = Command::new("cargo")
         .args([
-            "run", "-p", "cli", "--",
-            "-w", test_wasm_path.to_str().unwrap(),
-            "-f", "main"
+            "run",
+            "-p",
+            "cli",
+            "--",
+            "-w",
+            test_wasm_path.to_str().unwrap(),
+            "-f",
+            "main",
         ])
         .output()
         .expect("Failed to execute CLI");
@@ -78,10 +97,10 @@ fn test_cli_with_simple_wasm() {
     // We just verify the CLI runs and produces some output
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
-    
+
     println!("stdout: {}", stdout);
     println!("stderr: {}", stderr);
-    
+
     // Should have output either to stdout (success) or stderr (error)
     assert!(!stdout.is_empty() || !stderr.is_empty());
 }
