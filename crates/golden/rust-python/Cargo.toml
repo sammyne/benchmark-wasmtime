@@ -1,0 +1,19 @@
+[package]
+name = "rust-python"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+
+[dependencies.rustpython]
+git = "https://github.com/RustPython/RustPython"
+tag = "2025-11-10-main-55"
+#default-features = false
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+bench = false

@@ -1,0 +1,10 @@
+package sammyne:rust-python@0.1.0;
+
+interface api {
+    /// Run Python code and return the result
+    run: func(code: string) -> result<string, string>;
+}
+
+world rust-python {
+    export api;
+}
