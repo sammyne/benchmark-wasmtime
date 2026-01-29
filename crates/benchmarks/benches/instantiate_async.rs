@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use engine::v21;
 use std::hint::black_box;
 use std::path::PathBuf;
+use criterion::async_executor::FuturesExecutor;
 
 use engine::v21::{
     component::Component as ComponentV21, component::Linker as LinkerV21, Config as ConfigV21,
@@ -26,6 +27,7 @@ fn get_golden_wasm_path(filename: &str) -> PathBuf {
 fn setup_engine_v21(path: &PathBuf) -> Result<(EngineV21, ComponentV21)> {
     let mut config = ConfigV21::new();
     config.wasm_component_model(true);
+    config.async_support(true);
 
     let engine = EngineV21::new(&config).context("Failed to create v21 engine")?;
     let component = ComponentV21::from_file(&engine, path)
@@ -38,6 +40,7 @@ fn setup_engine_v21(path: &PathBuf) -> Result<(EngineV21, ComponentV21)> {
 fn setup_engine_v41(path: &PathBuf) -> Result<(EngineV41, ComponentV41)> {
     let mut config = ConfigV41::new();
     config.wasm_component_model(true);
+    config.async_support(true);
 
     let engine = EngineV41::new(&config).context("Failed to create v41 engine")?;
     let component = ComponentV41::from_file(&engine, path)
@@ -52,28 +55,25 @@ fn benchmark_instantiate_v21(c: &mut Criterion, wasm_file: &str) {
     let (engine, component) = setup_engine_v21(&wasm_path).expect("Setup v21 failed");
     let mut linker = LinkerV21::new(&engine);
 
-    v21::wasi::add_to_linker_sync(&mut linker).expect("link wasip1");
+    v21::wasi::add_to_linker_async(&mut linker).expect("link wasip1");
 
     let pre_instance = linker.instantiate_pre(&component).expect("instantiate-pre");
 
-    let mut group = c.benchmark_group(format!(
-        "instantiate_{}_v21",
-        wasm_file.replace(".wasm", "")
-    ));
-    group.bench_function(
-        BenchmarkId::new("wasmtime-v21", wasm_file),
-        |b| {
-            b.iter(|| {
+    let group_name = format!("instantiate_async_{}_v21", wasm_file.replace(".wasm", ""));
+    c.bench_function(
+        &group_name,
+        move |b| {
+            b.to_async(FuturesExecutor).iter(|| async {
                 let mut store = StoreV21::new(&engine, v21::WasiP2State::default());
                 black_box(
                     pre_instance
-                        .instantiate(&mut store)
+                        .instantiate_async(&mut store)
+                        .await
                         .expect("Instantiation failed"),
                 );
             })
         },
     );
-    group.finish();
 }
 
 /// Benchmark instantiation performance for v41 engine
@@ -88,24 +88,21 @@ fn benchmark_instantiate_v41(c: &mut Criterion, wasm_file: &str) {
         .instantiate_pre(&component)
         .expect("instantiate-pre");
 
-    let mut group = c.benchmark_group(format!(
-        "instantiate_{}_v41",
-        wasm_file.replace(".wasm", "")
-    ));
-    group.bench_function(
-        BenchmarkId::new("wasmtime-v41", wasm_file),
+    let group_name = format!("instantiate_async_{}_v41", wasm_file.replace(".wasm", ""));
+    c.bench_function(
+        &group_name,
         |b| {
-            b.iter(|| {
+            b.to_async(FuturesExecutor).iter(|| async {
                 let mut store = StoreV41::new(&engine, engine::v41::WasiP2State::default());
-                black_box(
+                let _ii = black_box(
                     pre_instance
-                        .instantiate(&mut store)
+                        .instantiate_async(&mut store)
+                        .await
                         .expect("Instantiation failed"),
                 );
             })
         },
     );
-    group.finish();
 }
 
 /// Benchmark argon2.wasm instantiation with v21
