@@ -15,7 +15,7 @@ resolver = "3"
 
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [workspace.dependencies]
 anyhow = "1.0"
@@ -30,6 +30,6 @@ wasmtime-wasi-v41 = { version = "41.0", package = "wasmtime-wasi" }
 wit-bindgen = "0.50.0"
 
 [profile.bench]
-debug = true
-# lto = "fat"
-# codegen-units = 1
+#debug = true
+lto = "fat"
+codegen-units = 1

@@ -1,5 +1,5 @@
 use crate::EngineError;
-use anyhow::Context;
+use anyhow::{Context, Result};
 
 // Re-export wasmtime v41 types for convenience
 pub use wasmtime_v41::*;
@@ -61,4 +61,40 @@ impl WasiView for WasiP2State {
             table: &mut self.table,
         }
     }
+}
+
+/// Find a function in a component instance by name (supports "interface#function" format)
+///
+/// # Arguments
+/// * `instance` - The component instance
+/// * `store` - The store context
+/// * `name` - The function name in format "interface#function"
+///
+/// # Returns
+/// The function if found, otherwise an error
+///
+/// # Example
+/// ```ignore
+/// let func = find_func(&instance, &mut store, "sammyne:argon2/api#hash")?;
+/// ```
+pub fn find_func<T>(
+    instance: &component::Instance,
+    store: &mut Store<T>,
+    name: &str,
+) -> Result<component::Func> {
+    let (interface, func_name) = name
+        .split_once('#')
+        .ok_or_else(|| anyhow::anyhow!("must in form of 'interface#func'"))?;
+
+    let ii = instance
+        .get_export_index(&mut *store, None, interface)
+        .ok_or_else(|| anyhow::anyhow!("miss interface: {interface}"))?;
+
+    let fi = instance
+        .get_export_index(&mut *store, Some(&ii), func_name)
+        .with_context(|| format!("miss export-index for func '{func_name}'"))?;
+
+    instance
+        .get_func(&mut *store, fi)
+        .with_context(|| format!("miss func '{func_name}'"))
 }

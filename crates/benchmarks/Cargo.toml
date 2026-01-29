@@ -8,6 +8,10 @@ name = "benchmark"
 harness = false
 
 [[bench]]
+name = "call_async"
+harness = false
+
+[[bench]]
 name = "instantiate"
 harness = false
 

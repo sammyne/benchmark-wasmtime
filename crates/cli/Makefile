@@ -9,5 +9,5 @@ run-sevenz-7z: $(WASM_DIR)/sevenz_7z.wasm
 run-argon2-hash: $(WASM_DIR)/argon2_component.wasm
 	cargo run -r -- --wasm $< --function sammyne:argon2/api@1.0.0#hash '[1,2,3]' '"hello-world-hello-world"'
 
-run-pulldown-cmark-parse: $(WASM_DIR)/pulldown_cmark.wasm
-	cargo run -r -- --wasm $< --function sammyne:argon2/api@1.0.0#hash '[1,2,3]' '"hello-world-hello-world"'
+run-pulldown-cmark-parse: $(WASM_DIR)/pulldown_cmark_component.wasm
+	cargo run -r -- --wasm $< --function sammyne:pulldown-cmark/api@1.0.0#parse '"Hello world, this is a ~~complicated~~ *very simple* example."'
