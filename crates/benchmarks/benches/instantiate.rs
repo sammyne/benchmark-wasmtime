@@ -1,18 +1,18 @@
 use anyhow::{Context, Result};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use engine::v21;
 use std::hint::black_box;
 use std::path::PathBuf;
 
 use engine::v21::{
-    component::Component as ComponentV21, component::Linker as LinkerV21, Config as ConfigV21,
-    Engine as EngineV21, Store as StoreV21,
-};
-use engine::v41::{
-    component::Component as ComponentV41, component::Linker as LinkerV41, Config as ConfigV41,
-    Engine as EngineV41, Store as StoreV41,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
+    component::Component as ComponentV21, component::Linker as LinkerV21,
 };
 use engine::v41::wasi::p2::add_to_linker_sync as add_to_linker_sync_v41;
+use engine::v41::{
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
+    component::Component as ComponentV41, component::Linker as LinkerV41,
+};
 
 /// Load a WASM component file path from the golden/out directory
 fn get_golden_wasm_path(filename: &str) -> PathBuf {
@@ -60,19 +60,16 @@ fn benchmark_instantiate_v21(c: &mut Criterion, wasm_file: &str) {
         "instantiate_{}_v21",
         wasm_file.replace(".wasm", "")
     ));
-    group.bench_function(
-        BenchmarkId::new("wasmtime-v21", wasm_file),
-        |b| {
-            b.iter(|| {
-                let mut store = StoreV21::new(&engine, v21::WasiP2State::default());
-                black_box(
-                    pre_instance
-                        .instantiate(&mut store)
-                        .expect("Instantiation failed"),
-                );
-            })
-        },
-    );
+    group.bench_function(BenchmarkId::new("wasmtime-v21", wasm_file), |b| {
+        b.iter(|| {
+            let mut store = StoreV21::new(&engine, v21::WasiP2State::default());
+            black_box(
+                pre_instance
+                    .instantiate(&mut store)
+                    .expect("Instantiation failed"),
+            );
+        })
+    });
     group.finish();
 }
 
@@ -84,27 +81,22 @@ fn benchmark_instantiate_v41(c: &mut Criterion, wasm_file: &str) {
 
     add_to_linker_sync_v41(&mut linker).expect("link wasip2");
 
-    let pre_instance = linker
-        .instantiate_pre(&component)
-        .expect("instantiate-pre");
+    let pre_instance = linker.instantiate_pre(&component).expect("instantiate-pre");
 
     let mut group = c.benchmark_group(format!(
         "instantiate_{}_v41",
         wasm_file.replace(".wasm", "")
     ));
-    group.bench_function(
-        BenchmarkId::new("wasmtime-v41", wasm_file),
-        |b| {
-            b.iter(|| {
-                let mut store = StoreV41::new(&engine, engine::v41::WasiP2State::default());
-                black_box(
-                    pre_instance
-                        .instantiate(&mut store)
-                        .expect("Instantiation failed"),
-                );
-            })
-        },
-    );
+    group.bench_function(BenchmarkId::new("wasmtime-v41", wasm_file), |b| {
+        b.iter(|| {
+            let mut store = StoreV41::new(&engine, engine::v41::WasiP2State::default());
+            black_box(
+                pre_instance
+                    .instantiate(&mut store)
+                    .expect("Instantiation failed"),
+            );
+        })
+    });
     group.finish();
 }
 

@@ -1,5 +1,5 @@
 use crate::EngineError;
-use anyhow::{Context, Result};
+use anyhow::Context;
 
 // Re-export wasmtime v41 types for convenience
 pub use wasmtime_v41::*;

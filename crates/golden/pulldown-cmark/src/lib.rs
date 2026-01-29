@@ -5,7 +5,7 @@ mod wasm;
 pub use wasm::*;
 
 use anyhow::Result;
-use pulldown_cmark::{html, Parser};
+use pulldown_cmark::{Parser, html};
 
 /// Parse markdown text into HTML
 ///

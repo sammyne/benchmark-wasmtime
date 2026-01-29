@@ -1,19 +1,19 @@
 use anyhow::{Context, Result};
 use criterion::async_executor::FuturesExecutor;
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use engine::v21::{self, component::Val as ValV21};
 use engine::v41::{self, component::Val as ValV41};
 use std::path::PathBuf;
 use std::time::Instant;
 
 use engine::v21::{
-    component::Component as ComponentV21, component::Linker as LinkerV21, Config as ConfigV21,
-    Engine as EngineV21, Store as StoreV21,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
+    component::Component as ComponentV21, component::Linker as LinkerV21,
 };
 use engine::v41::wasi::p2::add_to_linker_sync as add_to_linker_sync_v41;
 use engine::v41::{
-    component::Component as ComponentV41, component::Linker as LinkerV41, Config as ConfigV41,
-    Engine as EngineV41, Store as StoreV41,
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
+    component::Component as ComponentV41, component::Linker as LinkerV41,
 };
 fn get_golden_wasm_path(filename: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -213,7 +213,12 @@ fn benchmark_call_sevenz_7z_zip_v21(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v21(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
+    benchmark_call_v21(
+        c,
+        "sevenz-7z.wasm",
+        "sammyne:sevenz7z/api@1.0.0#zip",
+        &params,
+    );
 }
 
 /// Benchmark sevenz-7z.wasm zip function with v41
@@ -225,7 +230,12 @@ fn benchmark_call_sevenz_7z_zip_v41(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v41(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
+    benchmark_call_v41(
+        c,
+        "sevenz-7z.wasm",
+        "sammyne:sevenz7z/api@1.0.0#zip",
+        &params,
+    );
 }
 
 // /// Benchmark sevenz-7z.wasm unzip function with v21

@@ -2,25 +2,17 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::convert::From;
 use std::path::PathBuf;
-use wasmtime_v41::{component::*, Config, Engine, Store};
+use wasmtime_v41::{Config, Engine, Store, component::*};
 use wasmtime_wasi_v41::p2::add_to_linker_sync;
 use wasmtime_wasi_v41::{WasiCtx, WasiCtxView, WasiView};
 
 mod tests;
 
 /// Simple WasiView implementation for WasiCtx
+#[derive(Default)]
 struct MyState {
     ctx: WasiCtx,
     table: ResourceTable,
-}
-
-impl Default for MyState {
-    fn default() -> Self {
-        Self {
-            ctx: Default::default(),
-            table: Default::default(),
-        }
-    }
 }
 
 impl WasiView for MyState {

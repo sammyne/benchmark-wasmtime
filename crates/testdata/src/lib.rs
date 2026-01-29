@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 /// Load a WASM fixture by name from the fixtures directory
 ///

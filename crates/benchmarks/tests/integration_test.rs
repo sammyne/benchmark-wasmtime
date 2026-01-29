@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use testdata::{load_fixture, validate_wasm};
 
-use engine::v21::{execute as execute_v21, version as version_v21};
 use engine::v21::{Config, Engine as EngineV21, Module as ModuleV21};
-use engine::v41::{execute as execute_v41, version as version_v41};
+use engine::v21::{execute as execute_v21, version as version_v21};
 use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41};
+use engine::v41::{execute as execute_v41, version as version_v41};
 
 #[test]
 fn test_wasmtime_v21_execute_simple() -> Result<()> {
