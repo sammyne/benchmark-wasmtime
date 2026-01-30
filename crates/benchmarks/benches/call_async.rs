@@ -68,10 +68,15 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         (store, instance)
     };
 
+    let func_name_short = func_name
+        .rsplit_once('#')
+        .expect(&format!("get short func_name from {func_name}"))
+        .1;
+
     let group_name = format!(
         "call_async_{}_{}_v21",
         wasm_file.replace(".wasm", ""),
-        func_name.replace('/', "_")
+        func_name_short
     );
     c.bench_function(&group_name, move |b| {
         b.to_async(FuturesExecutor).iter_custom(|iters| async move {
@@ -117,10 +122,15 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         (store, instance)
     };
 
+    let func_name_short = func_name
+        .rsplit_once('#')
+        .expect(&format!("get short func_name from {func_name}"))
+        .1;
+
     let group_name = format!(
         "call_async_{}_{}_v41",
         wasm_file.replace(".wasm", ""),
-        func_name.replace('/', "_")
+        func_name_short
     );
 
     c.bench_function(&group_name, move |b| {
