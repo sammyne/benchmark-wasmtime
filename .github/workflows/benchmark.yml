@@ -1,0 +1,109 @@
+name: Benchmark Automation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check-skip-ci:
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run: ${{ steps.check_commit.outputs.should_run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message
+        id: check_commit
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == *"[skip-ci]"* ]]; then
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "Workflow skipped due to [skip-ci] in commit message"
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Workflow will proceed"
+          fi
+
+  benchmark:
+    needs: check-skip-ci
+    if: needs.check-skip-ci.outputs.should_run == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.92.0
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run benchmarks
+        run: |
+          cd crates/benchmarks && cargo bench
+
+      - name: Set date and revision
+        id: set_vars
+        run: |
+          DATE=$(date +%Y%m%d)
+          REV=$(git rev-parse --short HEAD)
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "rev=${REV}" >> $GITHUB_OUTPUT
+          echo "BENCHMARK_DATE=${DATE}" >> $GITHUB_ENV
+          echo "BENCHMARK_REV=${REV}" >> $GITHUB_ENV
+          echo "DATE: ${DATE}"
+          echo "REV: ${REV}"
+
+      - name: Generate benchmark report
+        run: |
+          python3 crates/benchmarks/collect_report.py \
+            -d . \
+            -o benchmark-${{ env.BENCHMARK_DATE }}-${{ env.BENCHMARK_REV }}.md
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          TAG_NAME="${{ env.BENCHMARK_DATE }}-${{ env.BENCHMARK_REV }}"
+          git tag -a "${TAG_NAME}" -m "Benchmark report for ${TAG_NAME}"
+          git push origin "${TAG_NAME}"
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
+      - name: Upload report as release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ env.TAG_NAME }}" \
+            --title "Benchmark Report ${{ env.TAG_NAME }}" \
+            --notes "Benchmark results for commit ${{ env.BENCHMARK_REV }}" \
+            "benchmark-${{ env.BENCHMARK_DATE }}-${{ env.BENCHMARK_REV }}.md"
