@@ -17,6 +17,13 @@ build-fast-sevenz-7z: sevenz-7z $(OUT_DIR)
 	cd $< && cargo build -r --target wasm32-wasip2
 	cp "$(BUILD_DIR)/sevenz_7z.wasm" "$(OUT_DIR)/$<.wasm"
 
+build-fast-host-caller: host-caller $(OUT_DIR)
+	rm -rf $</wit/deps
+	mkdir -p $</wit/deps
+	cp -r ../host/wit $</wit/deps/host
+	cd $< && cargo build -r --target wasm32-wasip2
+	cp "$(BUILD_DIR)/host_caller.wasm" "$(OUT_DIR)/$<.wasm"
+
 # build-fast-rust-python: rust-python $(OUT_DIR)
 # 	cd $< && cargo build -r --target wasm32-wasip2
 # 	cp "$(BUILD_DIR)/rust_python.wasm" "$(OUT_DIR)/$@.wasm"

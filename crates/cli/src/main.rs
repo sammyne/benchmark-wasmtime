@@ -3,8 +3,8 @@ use clap::Parser;
 use std::convert::From;
 use std::path::PathBuf;
 use wasmtime_v41::{Config, Engine, Store, component::*};
-use wasmtime_wasi_v41::p2::add_to_linker_sync;
-use wasmtime_wasi_v41::{WasiCtx, WasiCtxView, WasiView};
+// use wasmtime_wasi_v41::p2::add_to_linker_sync;
+use wasmtime_wasi_v41::{WasiCtx, WasiCtxView, WasiView, p2};
 
 mod tests;
 
@@ -40,6 +40,10 @@ struct Args {
     /// JSON parameters to pass to the function (positional)
     #[arg(value_name = "JSON")]
     params: Vec<String>,
+
+    /// 是否启用自定义的 host 接口
+    #[arg(long)]
+    with_host: bool,
 }
 
 /// Load and validate a WASM Component file
@@ -202,17 +206,23 @@ pub fn json_to_wasm_value(value: serde_json::Value, expect_type: &Type) -> Resul
 ///
 /// # Returns
 /// The result of the function execution
-fn execute_function(
+fn execute_function<D>(
     component: &Component,
     engine: &Engine,
     function_name: &str,
     params_json: Vec<serde_json::Value>,
-) -> Result<Vec<Val>> {
-    let mut store = Store::new(engine, MyState::default());
+    link: fn(&mut Linker<D>) -> Result<()>,
+) -> Result<Vec<Val>>
+where
+    D: WasiView + Default + 'static,
+    // L: Fn(&mut Linker<D>) -> Result<()>,
+{
+    let mut store = Store::new(engine, D::default());
     let mut linker = Linker::new(engine);
 
     // Add WASI to the linker
-    add_to_linker_sync(&mut linker).context("Failed to link WASI")?;
+    // add_to_linker_sync(&mut linker).context("Failed to link WASI")?;
+    link(&mut linker).context("Failed to link")?;
 
     // Instantiate the component
     let instance = linker
@@ -300,8 +310,27 @@ fn run(args: Args) -> Result<()> {
     println!("Successfully loaded WASM component");
 
     // Execute the function
-    let result =
-        execute_function(&component, &engine, &args.function, params).context("execute")?;
+    //let result =
+    //    execute_function(&component, &engine, &args.function, params).context("execute")?;
+    let result = if args.with_host {
+        execute_function::<v41host::Host>(
+            &component,
+            &engine,
+            &args.function,
+            params,
+            v41host::Host::link,
+        )
+        .context("execute")?
+    } else {
+        execute_function::<MyState>(
+            &component,
+            &engine,
+            &args.function,
+            params,
+            p2::add_to_linker_sync,
+        )
+        .context("execute")?
+    };
 
     // Convert WASM results to JSON
     let json_results: Vec<serde_json::Value> = result.iter().map(wasm_value_to_json).collect();

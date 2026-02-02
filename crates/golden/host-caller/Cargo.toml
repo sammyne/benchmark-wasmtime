@@ -1,0 +1,12 @@
+[package]
+name = "host-caller"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+wit-bindgen.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+bench = false

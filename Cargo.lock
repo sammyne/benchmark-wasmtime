@@ -582,6 +582,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+ "v41host",
  "wasmtime 41.0.0",
  "wasmtime-wasi 41.0.0",
 ]
@@ -1641,6 +1642,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc627f471c528ff0c4a49e1d5e60450c8f6461dd6d10ba9dcd3a61d3dff7728d"
 dependencies = [
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "host-caller"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen 0.50.0",
 ]
 
 [[package]]

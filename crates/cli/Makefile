@@ -11,3 +11,6 @@ run-argon2-hash: $(WASM_DIR)/argon2_component.wasm
 
 run-pulldown-cmark-parse: $(WASM_DIR)/pulldown_cmark_component.wasm
 	cargo run -r -- --wasm $< --function sammyne:pulldown-cmark/api@1.0.0#parse '"Hello world, this is a ~~complicated~~ *very simple* example."'
+
+run-host-caller: $(WASM_DIR)/host_caller.wasm
+	cargo run -r -- --wasm $< --with-host --function sammyne:host-caller/api@1.0.0#multi-sleep 2000 3
