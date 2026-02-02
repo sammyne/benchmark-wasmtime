@@ -12,6 +12,10 @@ name = "call_async"
 harness = false
 
 [[bench]]
+name = "call_async_with_host"
+harness = false
+
+[[bench]]
 name = "instantiate"
 harness = false
 
@@ -19,14 +23,20 @@ harness = false
 name = "instantiate_async"
 harness = false
 
+[[bench]]
+name = "instantiate_async_with_host"
+harness = false
+
 [dependencies]
-engine = { path = "../engine" }
+anyhow.workspace = true
+engine.workspace = true
 testdata = { path = "../testdata" }
-anyhow = "1.0"
+v21host.workspace = true
+v21ahost.workspace = true
+v41host.workspace = true
+v41ahost.workspace = true
+tokio.workspace = true
 
-[dev-dependencies]
-criterion = { workspace = true, features = ["async_futures"] }
-
-#[target.x86_64-unknown-linux-gnu]
-#linker = "/usr/bin/clang"
-#rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment"]
+[dev-dependencies.criterion]
+features = ["async_futures", "async_tokio"]
+workspace = true

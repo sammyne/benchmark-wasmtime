@@ -270,6 +270,11 @@ dependencies = [
  "criterion",
  "engine",
  "testdata",
+ "tokio",
+ "v21ahost",
+ "v21host",
+ "v41ahost",
+ "v41host",
 ]
 
 [[package]]
@@ -966,6 +971,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tinytemplate",
+ "tokio",
  "walkdir",
 ]
 
@@ -4457,11 +4463,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "v21ahost"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "tokio",
+ "wasmtime 21.0.2",
+ "wasmtime-wasi 21.0.2",
+]
+
+[[package]]
 name = "v21host"
 version = "0.1.0"
 dependencies = [
  "wasmtime 21.0.2",
  "wasmtime-wasi 21.0.2",
+]
+
+[[package]]
+name = "v41ahost"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "tokio",
+ "wasmtime 41.0.0",
+ "wasmtime-wasi 41.0.0",
 ]
 
 [[package]]

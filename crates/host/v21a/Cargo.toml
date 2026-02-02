@@ -1,0 +1,12 @@
+[package]
+name = "v21ahost"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasmtime = "21.0"
+wasmtime-wasi = "21.0"
+
+tokio.workspace = true
+async-trait = "0.1.89"
+anyhow.workspace = true
