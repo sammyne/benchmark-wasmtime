@@ -1,0 +1,8 @@
+[package]
+name = "v41host"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasmtime = "41.0"
+wasmtime-wasi = "41.0"

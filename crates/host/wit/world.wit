@@ -1,0 +1,9 @@
+package sammyne:host@1.0.0;
+
+interface api {
+  sleep: func(ms: u64);
+}
+
+world helloworld {
+  import api;
+}
