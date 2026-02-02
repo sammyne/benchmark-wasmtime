@@ -4457,6 +4457,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "v21host"
+version = "0.1.0"
+dependencies = [
+ "wasmtime 21.0.2",
+ "wasmtime-wasi 21.0.2",
+]
+
+[[package]]
 name = "v41host"
 version = "0.1.0"
 dependencies = [
