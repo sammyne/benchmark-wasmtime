@@ -86,7 +86,7 @@ fn benchmark_call_with_host_v21(c: &mut Criterion, wasm_file: &str, func_name: &
         .expect("build tokio");
 
     let group_name = format!(
-        "call_async_with_host_{}_{}_v21",
+        "call_async_with_pooling_alloc_host_{}_{}_v21",
         wasm_file.replace(".wasm", ""),
         func_name_short
     );
@@ -131,7 +131,7 @@ fn benchmark_call_with_host_v41(c: &mut Criterion, wasm_file: &str, func_name: &
         .1;
 
     let group_name = format!(
-        "call_async_with_host_{}_{}_v41",
+        "call_async_with_pooling_alloc_host_{}_{}_v41",
         wasm_file.replace(".wasm", ""),
         func_name_short
     );
