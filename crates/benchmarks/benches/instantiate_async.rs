@@ -118,6 +118,16 @@ fn benchmark_instantiate_pulldown_cmark_v41(c: &mut Criterion) {
 }
 
 /// Benchmark sevenz-7z.wasm instantiation with v21
+fn benchmark_instantiate_rust_python_v21(c: &mut Criterion) {
+    benchmark_instantiate_v21(c, "rust-python.wasm");
+}
+
+/// Benchmark sevenz-7z.wasm instantiation with v41
+fn benchmark_instantiate_rust_python_v41(c: &mut Criterion) {
+    benchmark_instantiate_v41(c, "rust-python.wasm");
+}
+
+/// Benchmark sevenz-7z.wasm instantiation with v21
 fn benchmark_instantiate_sevenz_7z_v21(c: &mut Criterion) {
     benchmark_instantiate_v21(c, "sevenz-7z.wasm");
 }
@@ -133,6 +143,8 @@ criterion_group!(
     benchmark_instantiate_argon2_v41,
     benchmark_instantiate_pulldown_cmark_v21,
     benchmark_instantiate_pulldown_cmark_v41,
+    benchmark_instantiate_rust_python_v21,
+    benchmark_instantiate_rust_python_v41,
     benchmark_instantiate_sevenz_7z_v21,
     benchmark_instantiate_sevenz_7z_v41
 );
