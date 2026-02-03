@@ -1,4 +1,4 @@
-WASM_DIR := ../../target/wasm32-wasip2/release/
+WASM_DIR := ../../target/wasm32-wasip2/release
 
 $(WASM_DIR)/sevenz_7z.wasm:
 	cd ../golden/servez-7z && cargo build -r --target wasm32-wasip2
@@ -14,3 +14,6 @@ run-pulldown-cmark-parse: $(WASM_DIR)/pulldown_cmark_component.wasm
 
 run-host-caller: $(WASM_DIR)/host_caller.wasm
 	cargo run -r -- --wasm $< --with-host --function sammyne:host-caller/api@1.0.0#multi-sleep 2000 3
+
+run-rust-python: $(WASM_DIR)/rust_python.wasm
+	cargo run -r -- --wasm $< --function sammyne:rust-python/api@0.1.0#run '"print(\"Hello world\")"'

@@ -8,8 +8,12 @@ anyhow.workspace = true
 
 [dependencies.rustpython]
 git = "https://github.com/RustPython/RustPython"
-tag = "2025-11-10-main-55"
-#default-features = false
+# 这个版本无法在 wasip2 环境下编译
+# 详情参见 https://github.com/RustPython/RustPython/issues/6891#event-22445523828。
+#tag = "2025-11-10-main-55"
+default-features = false
+features = ["freeze-stdlib", "stdlib"]
+rev = "5e732c5e2a8cd4bfabaae5cfc53566afb0572a56"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wit-bindgen.workspace = true

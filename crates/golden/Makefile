@@ -24,9 +24,9 @@ build-fast-host-caller: host-caller $(OUT_DIR)
 	cd $< && cargo build -r --target wasm32-wasip2
 	cp "$(BUILD_DIR)/host_caller.wasm" "$(OUT_DIR)/$<.wasm"
 
-# build-fast-rust-python: rust-python $(OUT_DIR)
-# 	cd $< && cargo build -r --target wasm32-wasip2
-# 	cp "$(BUILD_DIR)/rust_python.wasm" "$(OUT_DIR)/$@.wasm"
+build-fast-rust-python: rust-python $(OUT_DIR)
+	cd $< && cargo build -r --target wasm32-wasip2
+	cp "$(BUILD_DIR)/rust_python.wasm" "$(OUT_DIR)/$<.wasm"
 
 build-dev-%: % $(OUT_DIR)
 	cd $< && cargo build --target wasm32-wasip2

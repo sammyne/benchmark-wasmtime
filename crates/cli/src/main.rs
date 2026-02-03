@@ -3,13 +3,21 @@ use clap::Parser;
 use std::convert::From;
 use std::path::PathBuf;
 use wasmtime_v41::{Config, Engine, Store, component::*};
-use wasmtime_wasi_v41::{WasiCtx, WasiCtxView, WasiView, p2};
+use wasmtime_wasi_v41::{WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView, p2};
 
 /// Simple WasiView implementation for WasiCtx
-#[derive(Default)]
 struct MyState {
     ctx: WasiCtx,
     table: ResourceTable,
+}
+
+impl Default for MyState {
+    fn default() -> Self {
+        Self {
+            ctx: WasiCtxBuilder::new().inherit_stdout().build(),
+            table: ResourceTable::new(),
+        }
+    }
 }
 
 impl WasiView for MyState {
