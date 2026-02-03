@@ -16,6 +16,10 @@ name = "call_async_with_host"
 harness = false
 
 [[bench]]
+name = "call_async_with_pooling_alloc_host"
+harness = false
+
+[[bench]]
 name = "instantiate"
 harness = false
 
