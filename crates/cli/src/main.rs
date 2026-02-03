@@ -3,10 +3,7 @@ use clap::Parser;
 use std::convert::From;
 use std::path::PathBuf;
 use wasmtime_v41::{Config, Engine, Store, component::*};
-// use wasmtime_wasi_v41::p2::add_to_linker_sync;
 use wasmtime_wasi_v41::{WasiCtx, WasiCtxView, WasiView, p2};
-
-mod tests;
 
 /// Simple WasiView implementation for WasiCtx
 #[derive(Default)]
