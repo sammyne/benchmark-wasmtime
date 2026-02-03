@@ -21,25 +21,23 @@ def get_system_info() -> str:
     """
     info_lines = []
     
-    # Get CPU information
-    try:
-        cpu_info = platform.processor()
-        if not cpu_info:
-            # Try to get CPU info from /proc/cpuinfo on Linux
-            if os.path.exists("/proc/cpuinfo"):
-                with open("/proc/cpuinfo", "r") as f:
-                    for line in f:
-                        if line.startswith("model name"):
-                            cpu_info = line.split(":", 1)[1].strip()
-                            break
-        
-        # Get CPU cores
-        cpu_cores = os.cpu_count()
-        
+    # Get CPU information from /proc/cpuinfo
+    cpu_info = None
+    cpu_cores = os.cpu_count()
+    
+    if os.path.exists("/proc/cpuinfo"):
+        with open("/proc/cpuinfo", "r") as f:
+            for line in f:
+                if line.startswith("model name"):
+                    cpu_info = line.split(":", 1)[1].strip()
+                    break
+    
+    if cpu_info:
         info_lines.append(f"- **CPU 型号**: {cpu_info}")
-        info_lines.append(f"- **CPU 核心数**: {cpu_cores}")
-    except Exception as e:
-        info_lines.append(f"- **CPU 型号**: 无法获取 CPU 信息: {e}")
+    else:
+        info_lines.append("- **CPU 型号**: 无法获取 CPU 信息")
+    
+    info_lines.append(f"- **CPU 核心数**: {cpu_cores}")
     
     # Get memory information
     try:
