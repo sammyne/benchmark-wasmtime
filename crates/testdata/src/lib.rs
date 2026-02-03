@@ -13,20 +13,14 @@ use anyhow::{Result, bail};
 pub fn load_fixture(name: &str) -> Vec<u8> {
     // Get the manifest directory of the testdata crate
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let fixture_path = manifest_dir
-        .join("src/fixtures")
-        .join(format!("{}.wasm", name));
+    let fixture_path = manifest_dir.join("src/fixtures").join(format!("{}.wasm", name));
 
     if !fixture_path.exists() {
         panic!("Fixture file not found: {:?}", fixture_path);
     }
 
-    std::fs::read(&fixture_path).unwrap_or_else(|e| {
-        panic!(
-            "Failed to load fixture '{}' from path {:?}: {}",
-            name, fixture_path, e
-        )
-    })
+    std::fs::read(&fixture_path)
+        .unwrap_or_else(|e| panic!("Failed to load fixture '{}' from path {:?}: {}", name, fixture_path, e))
 }
 
 /// Validate WASM bytes

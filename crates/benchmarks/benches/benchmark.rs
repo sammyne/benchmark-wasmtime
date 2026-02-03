@@ -35,29 +35,19 @@ fn benchmark_simple_arithmetic(c: &mut Criterion) {
     let mut group = c.benchmark_group("simple_arithmetic");
 
     // Benchmark Wasmtime v21
-    let (engine_v21, module_v21) =
-        setup_engine_v21(&wasm_bytes).expect("设置 WasmtimeV21 引擎失败");
+    let (engine_v21, module_v21) = setup_engine_v21(&wasm_bytes).expect("设置 WasmtimeV21 引擎失败");
     group.bench_with_input(
         BenchmarkId::new("wasmtime-v21", function_name),
         &module_v21,
-        |b, module| {
-            b.iter(|| {
-                black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))
-            })
-        },
+        |b, module| b.iter(|| black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))),
     );
 
     // Benchmark Wasmtime v41
-    let (engine_v41, module_v41) =
-        setup_engine_v41(&wasm_bytes).expect("设置 WasmtimeV41 引擎失败");
+    let (engine_v41, module_v41) = setup_engine_v41(&wasm_bytes).expect("设置 WasmtimeV41 引擎失败");
     group.bench_with_input(
         BenchmarkId::new("wasmtime-v41", function_name),
         &module_v41,
-        |b, module| {
-            b.iter(|| {
-                black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))
-            })
-        },
+        |b, module| b.iter(|| black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))),
     );
 
     group.finish();
@@ -70,37 +60,23 @@ fn benchmark_complex_calculation(c: &mut Criterion) {
     let mut group = c.benchmark_group("complex_calculation");
 
     // Benchmark Wasmtime v21
-    let (engine_v21, module_v21) =
-        setup_engine_v21(&wasm_bytes).expect("设置 WasmtimeV21 引擎失败");
+    let (engine_v21, module_v21) = setup_engine_v21(&wasm_bytes).expect("设置 WasmtimeV21 引擎失败");
     group.bench_with_input(
         BenchmarkId::new("wasmtime-v21", function_name),
         &module_v21,
-        |b, module| {
-            b.iter(|| {
-                black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))
-            })
-        },
+        |b, module| b.iter(|| black_box(execute_v21(&engine_v21, module, function_name, &[]).expect("执行失败"))),
     );
 
     // Benchmark Wasmtime v41
-    let (engine_v41, module_v41) =
-        setup_engine_v41(&wasm_bytes).expect("设置 WasmtimeV41 引擎失败");
+    let (engine_v41, module_v41) = setup_engine_v41(&wasm_bytes).expect("设置 WasmtimeV41 引擎失败");
     group.bench_with_input(
         BenchmarkId::new("wasmtime-v41", function_name),
         &module_v41,
-        |b, module| {
-            b.iter(|| {
-                black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))
-            })
-        },
+        |b, module| b.iter(|| black_box(execute_v41(&engine_v41, module, function_name, &[]).expect("执行失败"))),
     );
 
     group.finish();
 }
 
-criterion_group!(
-    benches,
-    benchmark_simple_arithmetic,
-    benchmark_complex_calculation
-);
+criterion_group!(benches, benchmark_simple_arithmetic, benchmark_complex_calculation);
 criterion_main!(benches);

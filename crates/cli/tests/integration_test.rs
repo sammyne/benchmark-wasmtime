@@ -21,16 +21,7 @@ fn test_cli_help() {
 #[test]
 fn test_cli_file_not_found() {
     let output = Command::new("cargo")
-        .args([
-            "run",
-            "-p",
-            "cli",
-            "--",
-            "-w",
-            "/nonexistent.wasm",
-            "-f",
-            "test",
-        ])
+        .args(["run", "-p", "cli", "--", "-w", "/nonexistent.wasm", "-f", "test"])
         .output()
         .expect("Failed to execute CLI");
 

@@ -19,12 +19,7 @@ pub use wasmtime_wasi_v41 as wasi;
 ///
 /// # Returns
 /// The result of the function execution
-pub fn execute(
-    engine: &Engine,
-    module: &Module,
-    function_name: &str,
-    _args: &[u8],
-) -> Result<Vec<u8>, EngineError> {
+pub fn execute(engine: &Engine, module: &Module, function_name: &str, _args: &[u8]) -> Result<Vec<u8>, EngineError> {
     use wasmtime_v41::{Instance, Store};
     let mut store = Store::new(engine, ());
     let instance = Instance::new(&mut store, module, &[]).context("无法实例化模块")?;
@@ -77,11 +72,7 @@ impl WasiView for WasiP2State {
 /// ```ignore
 /// let func = find_func(&instance, &mut store, "sammyne:argon2/api#hash")?;
 /// ```
-pub fn find_func<T>(
-    instance: &component::Instance,
-    store: &mut Store<T>,
-    name: &str,
-) -> Result<component::Func> {
+pub fn find_func<T>(instance: &component::Instance, store: &mut Store<T>, name: &str) -> Result<component::Func> {
     let (interface, func_name) = name
         .split_once('#')
         .ok_or_else(|| anyhow::anyhow!("must in form of 'interface#func'"))?;

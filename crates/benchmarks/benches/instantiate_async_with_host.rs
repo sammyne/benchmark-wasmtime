@@ -3,12 +3,12 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use std::path::PathBuf;
 
 use engine::v21::{
-    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
-    component::Component as ComponentV21, component::Linker as LinkerV21,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21, component::Component as ComponentV21,
+    component::Linker as LinkerV21,
 };
 use engine::v41::{
-    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
-    component::Component as ComponentV41, component::Linker as LinkerV41,
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41, component::Component as ComponentV41,
+    component::Linker as LinkerV41,
 };
 
 use v21ahost::Host as HostV21;
@@ -64,10 +64,7 @@ fn benchmark_v21(c: &mut Criterion, wasm_file: &str) {
         .build()
         .expect("build tokio");
 
-    let group_name = format!(
-        "instantiate_async_with_host_{}_v21",
-        wasm_file.replace(".wasm", ""),
-    );
+    let group_name = format!("instantiate_async_with_host_{}_v21", wasm_file.replace(".wasm", ""),);
     c.bench_function(&group_name, move |b| {
         b.to_async(&rt).iter(|| async {
             let mut store = StoreV21::new(&engine, HostV21::default());
@@ -91,10 +88,7 @@ fn benchmark_v41(c: &mut Criterion, wasm_file: &str) {
 
     let pre_instance = linker.instantiate_pre(&component).expect("instantiate-pre");
 
-    let group_name = format!(
-        "instantiate_async_with_host_{}_v41",
-        wasm_file.replace(".wasm", ""),
-    );
+    let group_name = format!("instantiate_async_with_host_{}_v41", wasm_file.replace(".wasm", ""),);
 
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(8)

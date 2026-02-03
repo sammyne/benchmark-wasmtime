@@ -6,13 +6,13 @@ use std::hint::black_box;
 use std::path::PathBuf;
 
 use engine::v21::{
-    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
-    component::Component as ComponentV21, component::Linker as LinkerV21,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21, component::Component as ComponentV21,
+    component::Linker as LinkerV21,
 };
 use engine::v41::wasi::p2::add_to_linker_sync as add_to_linker_sync_v41;
 use engine::v41::{
-    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
-    component::Component as ComponentV41, component::Linker as LinkerV41,
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41, component::Component as ComponentV41,
+    component::Linker as LinkerV41,
 };
 
 /// Load a WASM component file path from the golden/out directory

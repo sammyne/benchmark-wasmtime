@@ -35,20 +35,16 @@ pub fn run(code: &str) -> Result<String> {
     //         Ok("hello-world".to_string())
     //     });
 
-    let result: PyResult<String> =
-        vm::InterpreterBuilder::new()
-            .init_stdlib()
-            .build()
-            .enter(|vm| {
-                let scope = vm.new_scope_with_builtins();
-                let code_obj = vm
-                    .compile(code, vm::compiler::Mode::Exec, "<embedded>".to_owned())
-                    .map_err(|err| vm.new_syntax_error(&err, Some(code)))?;
+    let result: PyResult<String> = vm::InterpreterBuilder::new().init_stdlib().build().enter(|vm| {
+        let scope = vm.new_scope_with_builtins();
+        let code_obj = vm
+            .compile(code, vm::compiler::Mode::Exec, "<embedded>".to_owned())
+            .map_err(|err| vm.new_syntax_error(&err, Some(code)))?;
 
-                vm.run_code_obj(code_obj, scope)?;
+        vm.run_code_obj(code_obj, scope)?;
 
-                Ok("hello-world".to_string())
-            });
+        Ok("hello-world".to_string())
+    });
 
     result.map_err(|err| anyhow!("Python execution failed: {:?}", err))
 }

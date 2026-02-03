@@ -5,10 +5,7 @@ mod wasm;
 pub use wasm::*;
 
 use anyhow::{Context, Result};
-use sevenz_rust::{
-    Password, SevenZArchiveEntry, SevenZMethod, SevenZMethodConfiguration, SevenZReader,
-    SevenZWriter,
-};
+use sevenz_rust::{Password, SevenZArchiveEntry, SevenZMethod, SevenZMethodConfiguration, SevenZReader, SevenZWriter};
 use std::io::Cursor;
 
 /// Compress the given bytes using LZMA2 algorithm (7z native compression) via sevenz-rust library

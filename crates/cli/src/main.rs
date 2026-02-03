@@ -189,8 +189,7 @@ pub fn json_to_wasm_value(value: serde_json::Value, expect_type: &Type) -> Resul
                     .remove(f.name)
                     .ok_or_else(|| anyhow::anyhow!("Field {} not found", f.name))?;
 
-                let w = json_to_wasm_value(v, &f.ty)
-                    .with_context(|| format!("bad field {}", f.name))?;
+                let w = json_to_wasm_value(v, &f.ty).with_context(|| format!("bad field {}", f.name))?;
 
                 wasm_values.push((f.name.to_owned(), w));
             }
@@ -272,12 +271,12 @@ fn wasm_value_to_json(val: &Val) -> serde_json::Value {
         Val::U32(u) => serde_json::Value::Number(serde_json::Number::from(*u)),
         Val::S64(i) => serde_json::json!(*i),
         Val::U64(u) => serde_json::json!(*u),
-        Val::Float32(f) => serde_json::Value::Number(
-            serde_json::Number::from_f64(*f as f64).unwrap_or(serde_json::Number::from(0)),
-        ),
-        Val::Float64(f) => serde_json::Value::Number(
-            serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0)),
-        ),
+        Val::Float32(f) => {
+            serde_json::Value::Number(serde_json::Number::from_f64(*f as f64).unwrap_or(serde_json::Number::from(0)))
+        }
+        Val::Float64(f) => {
+            serde_json::Value::Number(serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0)))
+        }
         Val::Char(c) => serde_json::json!(c.to_string()),
         Val::String(s) => serde_json::Value::String(s.clone()),
         Val::List(items) => {
@@ -318,23 +317,11 @@ fn run(args: Args) -> Result<()> {
     //let result =
     //    execute_function(&component, &engine, &args.function, params).context("execute")?;
     let result = if args.with_host {
-        execute_function::<v41host::Host>(
-            &component,
-            &engine,
-            &args.function,
-            params,
-            v41host::Host::link,
-        )
-        .context("execute")?
+        execute_function::<v41host::Host>(&component, &engine, &args.function, params, v41host::Host::link)
+            .context("execute")?
     } else {
-        execute_function::<MyState>(
-            &component,
-            &engine,
-            &args.function,
-            params,
-            p2::add_to_linker_sync,
-        )
-        .context("execute")?
+        execute_function::<MyState>(&component, &engine, &args.function, params, p2::add_to_linker_sync)
+            .context("execute")?
     };
 
     // Convert WASM results to JSON

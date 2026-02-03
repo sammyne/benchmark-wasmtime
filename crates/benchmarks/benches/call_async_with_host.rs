@@ -5,12 +5,12 @@ use engine::v41::{self, component::Val as ValV41};
 use std::path::PathBuf;
 
 use engine::v21::{
-    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
-    component::Component as ComponentV21, component::Linker as LinkerV21,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21, component::Component as ComponentV21,
+    component::Linker as LinkerV21,
 };
 use engine::v41::{
-    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
-    component::Component as ComponentV41, component::Linker as LinkerV41,
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41, component::Component as ComponentV41,
+    component::Linker as LinkerV41,
 };
 
 use v21ahost::Host as HostV21;
@@ -50,12 +50,7 @@ fn setup_engine_v41_with_host(path: &PathBuf) -> Result<(EngineV41, ComponentV41
 }
 
 /// Benchmark call performance for v21 engine with host interface
-fn benchmark_call_with_host_v21(
-    c: &mut Criterion,
-    wasm_file: &str,
-    func_name: &str,
-    params: &[ValV21],
-) {
+fn benchmark_call_with_host_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV21]) {
     let wasm_path = get_golden_wasm_path(wasm_file);
     let (engine, component) = setup_engine_v21_with_host(&wasm_path).expect("Setup v21 failed");
     let mut linker = LinkerV21::new(&engine);
@@ -101,22 +96,13 @@ fn benchmark_call_with_host_v21(
             func.call_async(&mut store, &params, &mut results)
                 .await
                 .expect("Call failed");
-            std::hint::black_box(
-                func.post_return_async(&mut store)
-                    .await
-                    .expect("unexpected error"),
-            );
+            std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
         })
     });
 }
 
 /// Benchmark call performance for v41 engine with host interface
-fn benchmark_call_with_host_v41(
-    c: &mut Criterion,
-    wasm_file: &str,
-    func_name: &str,
-    params: &[ValV41],
-) {
+fn benchmark_call_with_host_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV41]) {
     let wasm_path = get_golden_wasm_path(wasm_file);
     let (engine, component) = setup_engine_v41_with_host(&wasm_path).expect("Setup v41 failed");
     let mut linker = LinkerV41::new(&engine);
@@ -162,11 +148,7 @@ fn benchmark_call_with_host_v41(
             func.call_async(&mut store, &params, &mut results)
                 .await
                 .expect("Call failed");
-            std::hint::black_box(
-                func.post_return_async(&mut store)
-                    .await
-                    .expect("unexpected error"),
-            );
+            std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
         })
     });
 }
@@ -177,12 +159,7 @@ fn benchmark_call_host_caller_echo_v21(c: &mut Criterion) {
 
     let params = [times];
 
-    benchmark_call_with_host_v21(
-        c,
-        "host-caller.wasm",
-        "sammyne:host-caller/api@1.0.0#echo",
-        &params,
-    );
+    benchmark_call_with_host_v21(c, "host-caller.wasm", "sammyne:host-caller/api@1.0.0#echo", &params);
 }
 
 /// Benchmark host-caller.wasm echo function with v41
@@ -191,12 +168,7 @@ fn benchmark_call_host_caller_echo_v41(c: &mut Criterion) {
 
     let params = [times];
 
-    benchmark_call_with_host_v41(
-        c,
-        "host-caller.wasm",
-        "sammyne:host-caller/api@1.0.0#echo",
-        &params,
-    );
+    benchmark_call_with_host_v41(c, "host-caller.wasm", "sammyne:host-caller/api@1.0.0#echo", &params);
 }
 
 criterion_group!(

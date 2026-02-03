@@ -7,13 +7,13 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use engine::v21::{
-    Config as ConfigV21, Engine as EngineV21, Store as StoreV21,
-    component::Component as ComponentV21, component::Linker as LinkerV21,
+    Config as ConfigV21, Engine as EngineV21, Store as StoreV21, component::Component as ComponentV21,
+    component::Linker as LinkerV21,
 };
 use engine::v41::wasi::p2::add_to_linker_sync as add_to_linker_sync_v41;
 use engine::v41::{
-    Config as ConfigV41, Engine as EngineV41, Store as StoreV41,
-    component::Component as ComponentV41, component::Linker as LinkerV41,
+    Config as ConfigV41, Engine as EngineV41, Store as StoreV41, component::Component as ComponentV41,
+    component::Linker as LinkerV41,
 };
 fn get_golden_wasm_path(filename: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -73,11 +73,7 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!(
-        "call_async_{}_{}_v21",
-        wasm_file.replace(".wasm", ""),
-        func_name_short
-    );
+    let group_name = format!("call_async_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
     c.bench_function(&group_name, move |b| {
         b.to_async(FuturesExecutor).iter_custom(|iters| async move {
             let (mut store, instance) = setup().await;
@@ -91,11 +87,7 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
                 func.call_async(&mut store, &params, &mut results)
                     .await
                     .expect("Call failed");
-                std::hint::black_box(
-                    func.post_return_async(&mut store)
-                        .await
-                        .expect("unexpected error"),
-                );
+                std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
             }
             start.elapsed()
         })
@@ -127,11 +119,7 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!(
-        "call_async_{}_{}_v41",
-        wasm_file.replace(".wasm", ""),
-        func_name_short
-    );
+    let group_name = format!("call_async_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
 
     c.bench_function(&group_name, move |b| {
         b.to_async(FuturesExecutor).iter_custom(|iters| async move {
@@ -146,11 +134,7 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
                 func.call_async(&mut store, &params, &mut results)
                     .await
                     .expect("Call failed");
-                std::hint::black_box(
-                    func.post_return_async(&mut store)
-                        .await
-                        .expect("unexpected error"),
-                );
+                std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
             }
 
             start.elapsed()
@@ -186,8 +170,7 @@ fn benchmark_call_argon2_v41(c: &mut Criterion) {
 
 /// Benchmark pulldown-cmark.wasm parse function with v21
 fn benchmark_call_pulldown_cmark_v21(c: &mut Criterion) {
-    let markdown =
-        ValV21::String("Hello world, this is a ~~complicated~~ *very simple* example.".to_owned());
+    let markdown = ValV21::String("Hello world, this is a ~~complicated~~ *very simple* example.".to_owned());
 
     let params = [markdown];
 
@@ -201,8 +184,7 @@ fn benchmark_call_pulldown_cmark_v21(c: &mut Criterion) {
 
 /// Benchmark pulldown-cmark.wasm parse function with v41
 fn benchmark_call_pulldown_cmark_v41(c: &mut Criterion) {
-    let markdown =
-        ValV41::String("Hello world, this is a ~~complicated~~ *very simple* example.".to_owned());
+    let markdown = ValV41::String("Hello world, this is a ~~complicated~~ *very simple* example.".to_owned());
 
     let params = [markdown];
 
@@ -223,12 +205,7 @@ fn benchmark_call_sevenz_7z_zip_v21(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v21(
-        c,
-        "sevenz-7z.wasm",
-        "sammyne:sevenz7z/api@1.0.0#zip",
-        &params,
-    );
+    benchmark_call_v21(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
 }
 
 /// Benchmark sevenz-7z.wasm zip function with v41
@@ -240,12 +217,7 @@ fn benchmark_call_sevenz_7z_zip_v41(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v41(
-        c,
-        "sevenz-7z.wasm",
-        "sammyne:sevenz7z/api@1.0.0#zip",
-        &params,
-    );
+    benchmark_call_v41(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
 }
 
 // /// Benchmark sevenz-7z.wasm unzip function with v21

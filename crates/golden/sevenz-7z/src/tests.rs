@@ -46,12 +46,7 @@ fn test_vector() -> Vec<Case> {
 fn compress_with_all_levels() {
     for case in test_vector() {
         let result = compress_with_lzma2(&case.input, case.compression_level);
-        assert!(
-            result.is_ok(),
-            "Test case '{}' failed: {:?}",
-            case.name,
-            result.err()
-        );
+        assert!(result.is_ok(), "Test case '{}' failed: {:?}", case.name, result.err());
 
         let compressed = result.unwrap();
         // Verify that we got some output
@@ -130,9 +125,7 @@ fn decompress_test_vector() -> Vec<DecompressCase> {
         },
         DecompressCase {
             name: "binary_data",
-            input: vec![
-                0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0x00, 0x01, 0x7F, 0x80, 0x9A, 0xBC,
-            ],
+            input: vec![0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0x00, 0x01, 0x7F, 0x80, 0x9A, 0xBC],
         },
     ]
 }

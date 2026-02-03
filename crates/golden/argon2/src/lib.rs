@@ -33,13 +33,7 @@ use argon2::{Algorithm, Argon2, Params, Version};
 ///
 /// # Errors
 /// Returns an error if the hashing operation fails
-pub fn hash_with_params(
-    password: &[u8],
-    salt: &str,
-    m_cost: u32,
-    t_cost: u32,
-    p_cost: u32,
-) -> Result<Vec<u8>> {
+pub fn hash_with_params(password: &[u8], salt: &str, m_cost: u32, t_cost: u32, p_cost: u32) -> Result<Vec<u8>> {
     let params = Params::new(m_cost, t_cost, p_cost, None)
         .map_err(|e| anyhow::anyhow!("Failed to create Argon2 parameters: {}", e))?;
 
