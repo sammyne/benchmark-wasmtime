@@ -1,18 +1,11 @@
-use anyhow::{Context, Result};
-use criterion::{Criterion, criterion_group, criterion_main};
-use engine::v21::{self, component::Val as ValV21};
-use engine::v41::{self, component::Val as ValV41};
 use std::path::PathBuf;
 
-use engine::v21::{
-    Config as ConfigV21, Engine as EngineV21, Store as StoreV21, component::Component as ComponentV21,
-    component::Linker as LinkerV21,
-};
-use engine::v41::{
-    Config as ConfigV41, Engine as EngineV41, Store as StoreV41, component::Component as ComponentV41,
-    component::Linker as LinkerV41,
-};
-
+use anyhow::{Context, Result};
+use criterion::{Criterion, criterion_group, criterion_main};
+use engine::v21::component::{Component as ComponentV21, Linker as LinkerV21, Val as ValV21};
+use engine::v21::{self, Config as ConfigV21, Engine as EngineV21, Store as StoreV21};
+use engine::v41::component::{Component as ComponentV41, Linker as LinkerV41, Val as ValV41};
+use engine::v41::{self, Config as ConfigV41, Engine as EngineV41, Store as StoreV41};
 use v21ahost::Host as HostV21;
 use v41ahost::Host as HostV41;
 

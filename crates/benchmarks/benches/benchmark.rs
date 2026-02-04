@@ -1,12 +1,10 @@
+use std::hint::black_box;
+
 use anyhow::{Context, Result};
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use std::hint::black_box;
+use engine::v21::{Config as ConfigV21, Engine as EngineV21, Module as ModuleV21, execute as execute_v21};
+use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41, execute as execute_v41};
 use testdata::{load_fixture, validate_wasm};
-
-use engine::v21::execute as execute_v21;
-use engine::v21::{Config as ConfigV21, Engine as EngineV21, Module as ModuleV21};
-use engine::v41::execute as execute_v41;
-use engine::v41::{Config as ConfigV41, Engine as EngineV41, Module as ModuleV41};
 
 fn setup_engine_v21(wasm_bytes: &[u8]) -> Result<(EngineV21, ModuleV21)> {
     validate_wasm(wasm_bytes).context("验证 WASM 格式失败")?;
