@@ -72,7 +72,7 @@ jobs:
       - name: Set date and revision
         id: set_vars
         run: |
-          DATE=$(date +%Y%m%d)
+          DATE=$(date +%Y%m%d%H%M)
           REV=$(git rev-parse --short HEAD)
           echo "date=${DATE}" >> $GITHUB_OUTPUT
           echo "rev=${REV}" >> $GITHUB_OUTPUT
