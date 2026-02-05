@@ -85,6 +85,26 @@ class BenchmarkResult:
     unit: str
 
 
+def format_benchmark_name(name: str, prefix: str) -> str:
+    """Format benchmark name by removing prefix and handling async_ prefix.
+
+    Args:
+        name: The original benchmark name.
+        prefix: The prefix to remove (e.g., "instantiate_" or "call_").
+
+    Returns:
+        Formatted benchmark name.
+    """
+    # Remove the specified prefix
+    name = name.removeprefix(prefix)
+
+    # If the name starts with "async_", move it to suffix as "-async"
+    if name.startswith("async_"):
+        name = name[6:] + "-async"
+
+    return name
+
+
 def parse_estimates_json(json_path: Path) -> Optional[BenchmarkResult]:
     """Parse a single estimates.json file.
 
@@ -188,12 +208,121 @@ def generate_markdown_table(results: List[BenchmarkResult]) -> str:
     table.append("## 系统信息")
     table.append(system_info)
     table.append("")
-    table.append("## 测试数据")
+    table.append("## 结果")
+    table.append("时间单位：微妙")
+
+    # 1. 总览表格
+    table.append("")
+    table.append("### 总览")
     table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
     table.append("|--------------|------|--------|------|------|")
-
     for result in results:
         table.append(f"| {result.name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 2. v21 实例化
+    v21_instantiate = [r for r in results if r.name.startswith("instantiate_") and r.name.endswith("_v21")]
+    if v21_instantiate:
+        table.append("")
+        table.append("### v21 实例化")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(v21_instantiate, key=lambda x: format_benchmark_name(x.name, "instantiate_")):
+            name = format_benchmark_name(result.name, "instantiate_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 3. v21 函数调用
+    v21_call = [r for r in results if r.name.startswith("call_") and r.name.endswith("_v21")]
+    if v21_call:
+        table.append("")
+        table.append("### v21 函数调用")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(v21_call, key=lambda x: format_benchmark_name(x.name, "call_")):
+            name = format_benchmark_name(result.name, "call_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 4. v41 实例化
+    v41_instantiate = [r for r in results if r.name.startswith("instantiate_") and r.name.endswith("_v41")]
+    if v41_instantiate:
+        table.append("")
+        table.append("### v41 实例化")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(v41_instantiate, key=lambda x: format_benchmark_name(x.name, "instantiate_")):
+            name = format_benchmark_name(result.name, "instantiate_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 5. v41 函数调用
+    v41_call = [r for r in results if r.name.startswith("call_") and r.name.endswith("_v41")]
+    if v41_call:
+        table.append("")
+        table.append("### v41 函数调用")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(v41_call, key=lambda x: format_benchmark_name(x.name, "call_")):
+            name = format_benchmark_name(result.name, "call_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 6. v21 vs v41 对比
+    # 实例化对比
+    table.append("")
+    table.append("### v21 vs v41 对比")
+    table.append("")
+    table.append("#### 实例化对比")
+    table.append("| 基准测试名称 | v21 平均值 | v41 平均值 |")
+    table.append("|--------------|-----------|----------|")
+
+    # Build name-based comparison for instantiate
+    instantiate_results_by_name = {}
+    for result in results:
+        if result.name.startswith("instantiate_") and (result.name.endswith("_v21") or result.name.endswith("_v41")):
+            base_name = result.name[:-4]  # Remove _v21 or _v41
+            if base_name not in instantiate_results_by_name:
+                instantiate_results_by_name[base_name] = {}
+            if result.name.endswith("_v21"):
+                instantiate_results_by_name[base_name]["v21"] = result
+            elif result.name.endswith("_v41"):
+                instantiate_results_by_name[base_name]["v41"] = result
+
+    for base_name in sorted(instantiate_results_by_name.keys(), key=lambda x: format_benchmark_name(x, "instantiate_")):
+        data = instantiate_results_by_name[base_name]
+        if "v21" in data and "v41" in data:
+            v21 = data["v21"]
+            v41 = data["v41"]
+            # Convert to microseconds if needed
+            v21_mean = v21.mean if v21.unit == "µs" else v21.mean / 1000
+            v41_mean = v41.mean if v41.unit == "µs" else v41.mean / 1000
+            name = format_benchmark_name(base_name, "instantiate_")
+            table.append(f"| {name} | {v21_mean:.4f} | {v41_mean:.4f} |")
+
+    # 函数调用对比
+    table.append("")
+    table.append("#### 函数调用对比")
+    table.append("| 基准测试名称 | v21 平均值 | v41 平均值 |")
+    table.append("|--------------|-----------|----------|")
+
+    # Build name-based comparison for call
+    call_results_by_name = {}
+    for result in results:
+        if result.name.startswith("call_") and (result.name.endswith("_v21") or result.name.endswith("_v41")):
+            base_name = result.name[:-4]  # Remove _v21 or _v41
+            if base_name not in call_results_by_name:
+                call_results_by_name[base_name] = {}
+            if result.name.endswith("_v21"):
+                call_results_by_name[base_name]["v21"] = result
+            elif result.name.endswith("_v41"):
+                call_results_by_name[base_name]["v41"] = result
+
+    for base_name in sorted(call_results_by_name.keys(), key=lambda x: format_benchmark_name(x, "call_")):
+        data = call_results_by_name[base_name]
+        if "v21" in data and "v41" in data:
+            v21 = data["v21"]
+            v41 = data["v41"]
+            # Convert to microseconds if needed
+            v21_mean = v21.mean if v21.unit == "µs" else v21.mean / 1000
+            v41_mean = v41.mean if v41.unit == "µs" else v41.mean / 1000
+            name = format_benchmark_name(base_name, "call_")
+            table.append(f"| {name} | {v21_mean:.4f} | {v41_mean:.4f} |")
 
     return "\n".join(table)
 
