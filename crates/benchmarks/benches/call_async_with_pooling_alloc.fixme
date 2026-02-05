@@ -19,6 +19,9 @@ fn setup_engine_v21(path: &PathBuf) -> Result<(EngineV21, ComponentV21)> {
     let mut config = ConfigV21::new();
     config.wasm_component_model(true);
     config.async_support(true);
+    config.allocation_strategy(v21::InstanceAllocationStrategy::Pooling(
+        v21::PoolingAllocationConfig::default(),
+    ));
 
     let engine = EngineV21::new(&config).context("Failed to create v21 engine")?;
     let component = ComponentV21::from_file(&engine, path)
@@ -32,6 +35,7 @@ fn setup_engine_v41(path: &PathBuf) -> Result<(EngineV41, ComponentV41)> {
     let mut config = ConfigV41::new();
     config.wasm_component_model(true);
     config.async_support(true);
+    config.allocation_strategy(v41::PoolingAllocationConfig::default());
 
     let engine = EngineV41::new(&config).context("Failed to create v41 engine")?;
     let component = ComponentV41::from_file(&engine, path)
@@ -65,7 +69,7 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_async_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
+    let group_name = format!("call_async_with_pooling_alloc_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
     c.bench_function(&group_name, move |b| {
         b.to_async(FuturesExecutor).iter(|| async {
             let (mut store, instance) = setup().await;
@@ -79,24 +83,6 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
             std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
         })
     });
-    // c.bench_function(&group_name, move |b| {
-    //     b.to_async(FuturesExecutor).iter_custom(|iters| async move {
-    //         let (mut store, instance) = setup().await;
-
-    //         let func = v21::find_func(&instance, &mut store, func_name).expect("find func");
-
-    //         let start = Instant::now();
-
-    //         for _ in 0..iters {
-    //             let mut results = [ValV21::Bool(false); 1];
-    //             func.call_async(&mut store, &params, &mut results)
-    //                 .await
-    //                 .expect("Call failed");
-    //             std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
-    //         }
-    //         start.elapsed()
-    //     })
-    // });
 }
 
 /// Benchmark call performance for v41 engine
@@ -124,7 +110,7 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_async_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
+    let group_name = format!("call_async_with_pooling_alloc_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
 
     c.bench_function(&group_name, move |b| {
         b.to_async(FuturesExecutor).iter(|| async {
@@ -139,26 +125,6 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
             std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
         })
     });
-
-    // c.bench_function(&group_name, move |b| {
-    //     b.to_async(FuturesExecutor).iter_custom(|iters| async move {
-    //         let (mut store, instance) = setup().await;
-
-    //         let func = v41::find_func(&instance, &mut store, func_name).expect("find func");
-
-    //         let start = Instant::now();
-
-    //         for _ in 0..iters {
-    //             let mut results = [ValV41::Bool(false); 1];
-    //             func.call_async(&mut store, &params, &mut results)
-    //                 .await
-    //                 .expect("Call failed");
-    //             std::hint::black_box(func.post_return_async(&mut store).await.expect("unexpected error"));
-    //         }
-
-    //         start.elapsed()
-    //     })
-    // });
 }
 
 /// Benchmark argon2.wasm hash function with v21

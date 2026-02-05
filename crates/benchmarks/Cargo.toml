@@ -15,12 +15,24 @@ harness = false
 name = "call_async_with_pooling_alloc_host"
 harness = false
 
+#[[bench]]
+#name = "call_async_with_pooling_alloc"
+#harness = false
+
 [[bench]]
 name = "call_async"
 harness = false
 
 [[bench]]
 name = "call_with_pooling_alloc_host"
+harness = false
+
+#[[bench]]
+#name = "call_with_pooling_alloc"
+#harness = false
+
+[[bench]]
+name = "call"
 harness = false
 
 [[bench]]
