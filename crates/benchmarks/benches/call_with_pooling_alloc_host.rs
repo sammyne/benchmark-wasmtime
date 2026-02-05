@@ -73,7 +73,7 @@ fn benchmark_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[
         func_name_short
     );
     c.bench_function(&group_name, move |b| {
-        b.iter(|| async move {
+        b.iter(|| {
             let (mut store, instance) = setup();
 
             let func = v21::find_func(&instance, &mut store, func_name).expect("find func");
@@ -114,7 +114,7 @@ fn benchmark_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[
     );
 
     c.bench_function(&group_name, move |b| {
-        b.iter(|| async {
+        b.iter(|| {
             let (mut store, instance) = setup();
 
             let func = v41::find_func(&instance, &mut store, func_name).expect("find func");
