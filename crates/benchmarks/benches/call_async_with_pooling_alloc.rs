@@ -19,9 +19,11 @@ fn setup_engine_v21(path: &PathBuf) -> Result<(EngineV21, ComponentV21)> {
     let mut config = ConfigV21::new();
     config.wasm_component_model(true);
     config.async_support(true);
-    config.allocation_strategy(v21::InstanceAllocationStrategy::Pooling(
-        v21::PoolingAllocationConfig::default(),
-    ));
+
+    let mut alloc_config = v21::PoolingAllocationConfig::default();
+    // servenz-7z 依赖 2000 个内存页
+    alloc_config.memory_pages(2000);
+    config.allocation_strategy(v21::InstanceAllocationStrategy::Pooling(alloc_config));
 
     let engine = EngineV21::new(&config).context("Failed to create v21 engine")?;
     let component = ComponentV21::from_file(&engine, path)
@@ -35,7 +37,9 @@ fn setup_engine_v41(path: &PathBuf) -> Result<(EngineV41, ComponentV41)> {
     let mut config = ConfigV41::new();
     config.wasm_component_model(true);
     config.async_support(true);
-    config.allocation_strategy(v41::PoolingAllocationConfig::default());
+
+    let alloc_config = v41::PoolingAllocationConfig::default();
+    config.allocation_strategy(v41::InstanceAllocationStrategy::Pooling(alloc_config));
 
     let engine = EngineV41::new(&config).context("Failed to create v41 engine")?;
     let component = ComponentV41::from_file(&engine, path)
@@ -45,7 +49,7 @@ fn setup_engine_v41(path: &PathBuf) -> Result<(EngineV41, ComponentV41)> {
 }
 
 /// Benchmark call performance for v21 engine
-fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV21]) {
+fn benchmark_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV21]) {
     let wasm_path = get_golden_wasm_path(wasm_file);
     let (engine, component) = setup_engine_v21(&wasm_path).expect("Setup v21 failed");
     let mut linker = LinkerV21::new(&engine);
@@ -69,8 +73,12 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_async_with_pooling_alloc_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
-    c.bench_function(&group_name, move |b| {
+    let id = format!(
+        "call_async_with_pooling_alloc_{}_{}_v21",
+        wasm_file.replace(".wasm", ""),
+        func_name_short
+    );
+    c.bench_function(&id, move |b| {
         b.to_async(FuturesExecutor).iter(|| async {
             let (mut store, instance) = setup().await;
 
@@ -86,7 +94,7 @@ fn benchmark_call_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, param
 }
 
 /// Benchmark call performance for v41 engine
-fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV41]) {
+fn benchmark_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[ValV41]) {
     let wasm_path = get_golden_wasm_path(wasm_file);
     let (engine, component) = setup_engine_v41(&wasm_path).expect("Setup v41 failed");
     let mut linker = LinkerV41::new(&engine);
@@ -110,9 +118,13 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_async_with_pooling_alloc_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
+    let id = format!(
+        "call_async_with_pooling_alloc_{}_{}_v41",
+        wasm_file.replace(".wasm", ""),
+        func_name_short
+    );
 
-    c.bench_function(&group_name, move |b| {
+    c.bench_function(&id, move |b| {
         b.to_async(FuturesExecutor).iter(|| async {
             let (mut store, instance) = setup().await;
 
@@ -137,7 +149,7 @@ fn benchmark_call_argon2_v21(c: &mut Criterion) {
 
     let params = [password, salt];
 
-    benchmark_call_v21(c, "argon2.wasm", "sammyne:argon2/api@1.0.0#hash", &params);
+    benchmark_v21(c, "argon2.wasm", "sammyne:argon2/api@1.0.0#hash", &params);
 }
 
 /// Benchmark argon2.wasm hash function with v41
@@ -150,7 +162,7 @@ fn benchmark_call_argon2_v41(c: &mut Criterion) {
 
     let params = [password, salt];
 
-    benchmark_call_v41(c, "argon2.wasm", "sammyne:argon2/api@1.0.0#hash", &params);
+    benchmark_v41(c, "argon2.wasm", "sammyne:argon2/api@1.0.0#hash", &params);
 }
 
 /// Benchmark pulldown-cmark.wasm parse function with v21
@@ -159,7 +171,7 @@ fn benchmark_call_pulldown_cmark_v21(c: &mut Criterion) {
 
     let params = [markdown];
 
-    benchmark_call_v21(
+    benchmark_v21(
         c,
         "pulldown-cmark.wasm",
         "sammyne:pulldown-cmark/api@1.0.0#parse",
@@ -173,7 +185,7 @@ fn benchmark_call_pulldown_cmark_v41(c: &mut Criterion) {
 
     let params = [markdown];
 
-    benchmark_call_v41(
+    benchmark_v41(
         c,
         "pulldown-cmark.wasm",
         "sammyne:pulldown-cmark/api@1.0.0#parse",
@@ -190,7 +202,7 @@ fn benchmark_call_sevenz_7z_zip_v21(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v21(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
+    benchmark_v21(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
 }
 
 /// Benchmark sevenz-7z.wasm zip function with v41
@@ -202,7 +214,7 @@ fn benchmark_call_sevenz_7z_zip_v41(c: &mut Criterion) {
 
     let params = [req];
 
-    benchmark_call_v41(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
+    benchmark_v41(c, "sevenz-7z.wasm", "sammyne:sevenz7z/api@1.0.0#zip", &params);
 }
 
 // /// Benchmark sevenz-7z.wasm unzip function with v21
