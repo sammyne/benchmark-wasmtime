@@ -66,7 +66,11 @@ fn benchmark_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let id = format!("call_with_pooling_alloc_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
+    let id = format!(
+        "call_with_pooling_alloc_{}_{}_v21",
+        wasm_file.replace(".wasm", ""),
+        func_name_short
+    );
     c.bench_function(&id, move |b| {
         b.iter(|| {
             let (mut store, instance) = setup();
@@ -102,7 +106,11 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let id = format!("call_with_pooling_alloc_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
+    let id = format!(
+        "call_with_pooling_alloc_{}_{}_v41",
+        wasm_file.replace(".wasm", ""),
+        func_name_short
+    );
 
     c.bench_function(&id, move |b| {
         b.iter(|| {

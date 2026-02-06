@@ -1,5 +1,5 @@
 [package]
-name = "argon2-component"
+name = "argon2-cmd"
 version.workspace = true
 edition.workspace = true
 
@@ -11,5 +11,6 @@ anyhow.workspace = true
 wit-bindgen.workspace = true
 
 [lib]
+name = "argon2_reactor"
 crate-type = ["cdylib"]
 bench = false

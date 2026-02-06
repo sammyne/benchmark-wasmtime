@@ -5,7 +5,7 @@ mod bindgen {
 use std::time::Duration;
 
 use wasmtime::component::{HasSelf, Linker};
-use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
+use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView};
 
 use crate::bindgen::sammyne::host::api;
 
@@ -23,6 +23,17 @@ pub struct MyWasiState {
 impl Host {
     pub fn link(linker: &mut Linker<Self>) -> wasmtime::Result<()> {
         api::add_to_linker::<_, HasSelf<_>>(linker, |v: &mut Self| v)
+    }
+}
+
+impl From<WasiCtxBuilder> for Host {
+    fn from(mut builder: WasiCtxBuilder) -> Self {
+        let wasi_state = MyWasiState {
+            ctx: builder.build(),
+            resources: ResourceTable::new(),
+        };
+
+        Self { wasi_state }
     }
 }
 

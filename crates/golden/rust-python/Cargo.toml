@@ -1,5 +1,5 @@
 [package]
-name = "rust-python"
+name = "rust-python-cmd"
 version.workspace = true
 edition.workspace = true
 
@@ -19,5 +19,6 @@ rev = "5e732c5e2a8cd4bfabaae5cfc53566afb0572a56"
 wit-bindgen.workspace = true
 
 [lib]
+name = "rust_python_reactor"
 crate-type = ["cdylib"]
 bench = false

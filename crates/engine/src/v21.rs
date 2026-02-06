@@ -1,13 +1,12 @@
-use crate::EngineError;
 use anyhow::Context;
-
 // Re-export wasmtime v21 types for convenience
 pub use wasmtime_v21::*;
-
-use wasmtime_wasi_v21::{ResourceTable, WasiCtx, WasiView};
 // Re-export wasmtime-wasi v21 as wasi for convenience
 // Note: We re-export the module contents to allow easier access
 pub use wasmtime_wasi_v21 as wasi;
+use wasmtime_wasi_v21::{ResourceTable, WasiCtx, WasiView};
+
+use crate::EngineError;
 
 /// Execute a function from the loaded WASM module
 ///

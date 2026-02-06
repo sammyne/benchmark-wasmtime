@@ -12,6 +12,6 @@ pub struct App;
 
 impl Guest for App {
     fn run(code: String) -> Result<String, String> {
-        crate::run(&code).map_err(|err| err.to_string())
+        crate::api::run(&code).map_err(|err| err.to_string())
     }
 }

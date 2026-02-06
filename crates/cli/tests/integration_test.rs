@@ -36,6 +36,7 @@ fn test_cli_file_not_found() {
 fn test_cli_invalid_json_param() {
     // Create a temporary file with some content
     use std::io::Write;
+
     use tempfile::NamedTempFile;
     let mut temp_file = NamedTempFile::new().unwrap();
     writeln!(temp_file, "dummy content").unwrap();

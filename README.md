@@ -135,8 +135,11 @@ sevenz-7z | 470K | 计算密集型 | 压缩算法库
 
 
 ## 温馨提示
-1. wasmtime v21 没有模块专用的 `Linker`；
-
+### wasmtime v21 的问题
+1. 没有模块专用的 `Linker`；
+1. 不支持 `wasi:cli/run@0.2.0` 接口，因此无法运行符合 wasip2 标准的 command 类型组件
+    - https://github.com/bytecodealliance/wasmtime/issues/7326 显示在 2025/06/29 之后才有完整实现
+    - v21 发布于 2024/10/10，早于上述时刻
 
 ## TODO
 - 排查为什么以下配置对 golden 下的 crate 无效。`cargo build -r -v --target=wasm32-wasip2` 显示日志级别是 `3`

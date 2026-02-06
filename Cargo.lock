@@ -174,7 +174,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "argon2-component"
+name = "argon2-cmd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -269,6 +269,7 @@ dependencies = [
  "anyhow",
  "criterion",
  "engine",
+ "golden",
  "testdata",
  "tokio",
  "v21ahost",
@@ -1572,6 +1573,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
+name = "golden"
+version = "0.1.0"
+
+[[package]]
 name = "half"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2813,7 +2818,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pulldown-cmark-component"
+name = "pulldown-cmark-cmd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3161,7 +3166,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-python"
+name = "rust-python-cmd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3704,7 +3709,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sevenz-7z"
+name = "sevenz-7z-cmd"
 version = "0.1.0"
 dependencies = [
  "anyhow",

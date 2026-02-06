@@ -32,6 +32,7 @@ wasmtime-wasi-v41 = { version = "41.0", package = "wasmtime-wasi" }
 wit-bindgen = "0.50.0"
 
 engine.path = "crates/engine"
+golden.path = "crates/golden/golden"
 v21host.path = "crates/host/v21"
 v21ahost.path = "crates/host/v21a"
 v41host.path = "crates/host/v41"

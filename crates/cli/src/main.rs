@@ -1,8 +1,11 @@
-use anyhow::{Context, Result};
-use clap::Parser;
 use std::convert::From;
 use std::path::PathBuf;
-use wasmtime_v41::{Config, Engine, Store, component::*};
+
+use anyhow::{Context, Result};
+use clap::Parser;
+use wasmtime_v41::component::*;
+use wasmtime_v41::{Config, Engine, Store};
+use wasmtime_wasi_v41::p2::bindings::sync::Command;
 use wasmtime_wasi_v41::{WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView, p2};
 
 /// Simple WasiView implementation for WasiCtx
@@ -15,6 +18,15 @@ impl Default for MyState {
     fn default() -> Self {
         Self {
             ctx: WasiCtxBuilder::new().inherit_stdout().build(),
+            table: ResourceTable::new(),
+        }
+    }
+}
+
+impl From<WasiCtxBuilder> for MyState {
+    fn from(mut builder: WasiCtxBuilder) -> Self {
+        Self {
+            ctx: builder.build(),
             table: ResourceTable::new(),
         }
     }
@@ -296,8 +308,10 @@ fn wasm_value_to_json(val: &Val) -> serde_json::Value {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    // Run with error handling
-    run(args).context("run")
+    match args.function.as_str() {
+        "wasi:cli/run@0.2.0" => run_wasi_cli(args).context("run wasi cli"),
+        _ => run(args).context("run"),
+    }
 }
 
 fn run(args: Args) -> Result<()> {
@@ -339,6 +353,31 @@ fn run(args: Args) -> Result<()> {
     Ok(())
 }
 
+fn run_wasi_cli(mut args: Args) -> Result<()> {
+    // Configure and create `Engine`
+    let config = Config::new();
+    let engine = Engine::new(&config).context("new engine")?;
+
+    let component = Component::from_file(&engine, &args.wasm).context("load component")?;
+
+    let arg0 = args
+        .wasm
+        .file_name()
+        .context("wasm file name")?
+        .to_str()
+        .context("wasm file name to str")?;
+    args.params.insert(0, arg0.to_owned());
+
+    let mut builder = WasiCtx::builder();
+    builder.inherit_stdout().inherit_stdin().args(&args.params);
+    if args.with_host {
+        call_run(&component, &engine, builder.into(), v41host::Host::link).context("run with host")
+    } else {
+        let data = MyState::from(builder);
+        call_run(&component, &engine, data, p2::add_to_linker_sync).context("run")
+    }
+}
+
 fn find_func<T>(i: &Instance, mut store: &mut Store<T>, name: &str) -> Result<Func> {
     let (interface, func_name) = name
         .split_once('#')
@@ -354,4 +393,20 @@ fn find_func<T>(i: &Instance, mut store: &mut Store<T>, name: &str) -> Result<Fu
 
     i.get_func(&mut store, fi)
         .with_context(|| format!("miss func '{func_name}'"))
+}
+
+fn call_run<D>(component: &Component, engine: &Engine, data: D, link: fn(&mut Linker<D>) -> Result<()>) -> Result<()>
+where
+    D: WasiView + Default + 'static,
+{
+    let mut store = Store::new(engine, data);
+    let mut linker = Linker::new(engine);
+
+    link(&mut linker).context("link")?;
+
+    // Instantiate the component and we're off to the races.
+    let command = Command::instantiate(&mut store, &component, &linker).context("instantiate command")?;
+    let r = command.wasi_cli_run().call_run(&mut store).context("wasi-cli-run")?;
+
+    r.map_err(|_| anyhow::anyhow!("run error out"))
 }

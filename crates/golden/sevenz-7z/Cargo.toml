@@ -1,5 +1,5 @@
 [package]
-name = "sevenz-7z"
+name = "sevenz-7z-cmd"
 version.workspace = true
 edition.workspace = true
 
@@ -11,4 +11,5 @@ anyhow.workspace = true
 wit-bindgen.workspace = true
 
 [lib]
+name = "sevenz_7z_reactor"
 crate-type = ["cdylib"]

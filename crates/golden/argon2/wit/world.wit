@@ -10,6 +10,11 @@ interface api {
     /// # Returns
     /// Ok with the 32-byte hash result, or Err with an error message
     hash: func(password: list<u8>, salt: string) -> result<list<u8>, string>;
+
+    /// Hash a password with the given salt using Argon2id.
+    /// # Returns
+    /// 1st byte of hash result
+    must-hash: func(password: string, salt: string) -> u8;
 }
 
 /// An example world for the component to target.

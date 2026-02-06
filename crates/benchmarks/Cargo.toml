@@ -4,6 +4,11 @@ version.workspace = true
 edition.workspace = true
 
 [[bench]]
+name = "cmd_instantiate_async"
+harness = false
+path = "benches/commands/instantiate_async.rs"
+
+[[bench]]
 name = "benchmark"
 harness = false
 
@@ -60,6 +65,9 @@ v21ahost.workspace = true
 v41host.workspace = true
 v41ahost.workspace = true
 tokio.workspace = true
+
+[dev-dependencies]
+golden.workspace = true
 
 [dev-dependencies.criterion]
 features = ["async_futures", "async_tokio"]
