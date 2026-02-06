@@ -6,6 +6,7 @@ use engine::v21::component::{Component as ComponentV21, Linker as LinkerV21, Val
 use engine::v21::{self, Config as ConfigV21, Engine as EngineV21, Store as StoreV21};
 use engine::v41::component::{Component as ComponentV41, Linker as LinkerV41, Val as ValV41};
 use engine::v41::{self, Config as ConfigV41, Engine as EngineV41, Store as StoreV41};
+
 fn get_golden_wasm_path(filename: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("../golden/out");
@@ -17,9 +18,11 @@ fn get_golden_wasm_path(filename: &str) -> PathBuf {
 fn setup_engine_v21(path: &PathBuf) -> Result<(EngineV21, ComponentV21)> {
     let mut config = ConfigV21::new();
     config.wasm_component_model(true);
-    config.allocation_strategy(v21::InstanceAllocationStrategy::Pooling(
-        v21::PoolingAllocationConfig::default(),
-    ));
+
+    let mut alloc_config = v21::PoolingAllocationConfig::default();
+    // servenz-7z 依赖 2000 个内存页
+    alloc_config.memory_pages(2000);
+    config.allocation_strategy(v21::InstanceAllocationStrategy::Pooling(alloc_config));
 
     let engine = EngineV21::new(&config).context("Failed to create v21 engine")?;
     let component = ComponentV21::from_file(&engine, path)
@@ -63,8 +66,8 @@ fn benchmark_v21(c: &mut Criterion, wasm_file: &str, func_name: &str, params: &[
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_with_pooling_alloc_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
-    c.bench_function(&group_name, move |b| {
+    let id = format!("call_with_pooling_alloc_{}_{}_v21", wasm_file.replace(".wasm", ""), func_name_short);
+    c.bench_function(&id, move |b| {
         b.iter(|| {
             let (mut store, instance) = setup();
 
@@ -99,9 +102,9 @@ fn benchmark_call_v41(c: &mut Criterion, wasm_file: &str, func_name: &str, param
         .expect(&format!("get short func_name from {func_name}"))
         .1;
 
-    let group_name = format!("call_with_pooling_alloc_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
+    let id = format!("call_with_pooling_alloc_{}_{}_v41", wasm_file.replace(".wasm", ""), func_name_short);
 
-    c.bench_function(&group_name, move |b| {
+    c.bench_function(&id, move |b| {
         b.iter(|| {
             let (mut store, instance) = setup();
 
