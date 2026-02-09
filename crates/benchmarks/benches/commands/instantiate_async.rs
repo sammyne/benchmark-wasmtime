@@ -32,7 +32,7 @@ fn benchmark_v41(c: &mut Criterion, name: &str) {
     let pre_instance =
         CommandPreV41::new(linker.instantiate_pre(&component).expect("instantiate-pre")).expect("new command-pre");
 
-    let id = format!("instantiate_async_{name}_v41");
+    let id = format!("cmd_instantiate_async_{name}_v41");
     c.bench_function(&id, |b| {
         b.to_async(FuturesExecutor).iter(|| async {
             let mut store = StoreV41::new(&engine, engine::v41::WasiP2State::default());

@@ -324,6 +324,29 @@ def generate_markdown_table(results: List[BenchmarkResult]) -> str:
             name = format_benchmark_name(base_name, "call_")
             table.append(f"| {name} | {v21_mean:.4f} | {v41_mean:.4f} |")
 
+    # 7. command 组件
+    # 7.1 v41 实例化
+    cmd_instantiate_v41 = [r for r in results if r.name.startswith("cmd_instantiate_") and r.name.endswith("_v41")]
+    if cmd_instantiate_v41:
+        table.append("")
+        table.append("### v41 command 实例化")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(cmd_instantiate_v41, key=lambda x: x.name):
+            name = format_benchmark_name(result.name, "cmd_instantiate_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
+    # 7.2 v41 函数调用
+    cmd_call_v41 = [r for r in results if r.name.startswith("cmd_call_") and r.name.endswith("_v41")]
+    if cmd_call_v41:
+        table.append("")
+        table.append("### v41 command 函数调用")
+        table.append("| 基准测试名称 | 下限 | 平均值 | 上限 | 单位 |")
+        table.append("|--------------|------|--------|------|------|")
+        for result in sorted(cmd_call_v41, key=lambda x: x.name):
+            name = format_benchmark_name(result.name, "cmd_call_")
+            table.append(f"| {name} | {result.lower:.4f} | {result.mean:.4f} | {result.upper:.4f} | {result.unit} |")
+
     return "\n".join(table)
 
 
