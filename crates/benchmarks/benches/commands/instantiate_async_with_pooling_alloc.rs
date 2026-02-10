@@ -28,7 +28,7 @@ fn benchmark_v41(c: &mut Criterion, name: &str) {
     let (engine, component) = setup(&wasm_path).expect("Setup v41 failed");
     let mut linker = LinkerV41::new(&engine);
 
-    v41::wasi::p2::add_to_linker_sync(&mut linker).expect("link wasip2");
+    v41::wasi::p2::add_to_linker_async(&mut linker).expect("link wasip2");
 
     let pre_instance =
         CommandPreV41::new(linker.instantiate_pre(&component).expect("instantiate-pre")).expect("new command-pre");
