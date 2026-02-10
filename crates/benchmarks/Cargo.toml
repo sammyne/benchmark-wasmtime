@@ -9,6 +9,11 @@ harness = false
 path = "benches/commands/instantiate_async.rs"
 
 [[bench]]
+name = "cmd_instantiate_async_with_pooling_alloc"
+harness = false
+path = "benches/commands/instantiate_async_with_pooling_alloc.rs"
+
+[[bench]]
 name = "benchmark"
 harness = false
 
