@@ -63,6 +63,10 @@ name = "instantiate_async"
 harness = false
 
 [[bench]]
+name = "instantiate_async_with_pooling_alloc"
+harness = false
+
+[[bench]]
 name = "instantiate_async_with_host"
 harness = false
 
